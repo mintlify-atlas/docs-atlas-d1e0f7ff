@@ -1,0 +1,133 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "node-fullykiosk",
+  "projectDescription": "TypeScript-friendly React Hooks for the Fully Kiosk Browser App",
+  "theme": "palm",
+  "primaryColor": "#94cb04",
+  "lightColor": "#545454",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/how-it-works",
+              "concepts/fully-kiosk-browser"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/device-info",
+              "guides/screen-control",
+              "guides/network-connectivity",
+              "guides/hardware-integration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Device Information",
+            "pages": [
+              "api/use-android-id",
+              "api/use-device-id",
+              "api/use-device-name",
+              "api/use-imei",
+              "api/use-serial-number",
+              "api/use-sim-serial-number"
+            ]
+          },
+          {
+            "group": "Network",
+            "pages": [
+              "api/use-hostname",
+              "api/use-ipv4-address",
+              "api/use-ipv6-address",
+              "api/use-mac-address",
+              "api/use-wifi",
+              "api/use-wifi-ssid",
+              "api/use-wifi-signal-level"
+            ]
+          },
+          {
+            "group": "Screen & Display",
+            "pages": [
+              "api/use-screen-brightness",
+              "api/use-screen-sleep",
+              "api/use-screen-rotation-lock",
+              "api/use-orientation",
+              "api/use-display-size"
+            ]
+          },
+          {
+            "group": "Hardware",
+            "pages": [
+              "api/use-battery-level",
+              "api/use-charging",
+              "api/use-bluetooth",
+              "api/use-nfc",
+              "api/use-qr-scanner"
+            ]
+          },
+          {
+            "group": "Input & Locale",
+            "pages": [
+              "api/use-keyboard",
+              "api/use-current-locale"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "TypeScript-first React hooks for Fully Kiosk Browser",
+    "Device information access (Android ID, IMEI, serial numbers)",
+    "Network monitoring (WiFi, IP addresses, MAC address)",
+    "Screen control (brightness, orientation, sleep)",
+    "Hardware integration (battery, Bluetooth, NFC, QR scanner)",
+    "Keyboard and locale management",
+    "Zero dependencies"
+  ],
+  "publicApiSurface": [
+    "useAndroidId",
+    "useBatteryLevel",
+    "useBluetooth",
+    "useCharging",
+    "useCurrentLocale",
+    "useDeviceId",
+    "useDeviceName",
+    "useDisplaySize",
+    "useHostname",
+    "useImei",
+    "useIpv4Address",
+    "useIpv6Address",
+    "useKeyboard",
+    "useMacAddress",
+    "useNFC",
+    "useOrientation",
+    "useQRScanner",
+    "useScreenBrightness",
+    "useScreenRotationLock",
+    "useScreenSleep",
+    "useSerialNumber",
+    "useSimSerialNumber",
+    "useWifi",
+    "useWifiSSID",
+    "useWifiSignalLevel"
+  ]
+}
