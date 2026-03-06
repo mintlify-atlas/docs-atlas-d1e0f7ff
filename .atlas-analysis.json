@@ -79,7 +79,6 @@
               "api/use-battery-level",
               "api/use-charging",
               "api/use-bluetooth",
-              "api/use-nfc",
               "api/use-qr-scanner"
             ]
           },
@@ -99,7 +98,7 @@
     "Device information access (Android ID, IMEI, serial numbers)",
     "Network monitoring (WiFi, IP addresses, MAC address)",
     "Screen control (brightness, orientation, sleep)",
-    "Hardware integration (battery, Bluetooth, NFC, QR scanner)",
+    "Hardware integration (battery, Bluetooth, QR scanner)",
     "Keyboard and locale management",
     "Zero dependencies"
   ],
@@ -118,7 +117,6 @@
     "useIpv6Address",
     "useKeyboard",
     "useMacAddress",
-    "useNFC",
     "useOrientation",
     "useQRScanner",
     "useScreenBrightness",

@@ -186,15 +186,13 @@ fully.bind('networkReconnect', `_fullykiosk['${vId}']('reconnect');`);
 fully.bind('networkDisconnect', `_fullykiosk['${vId}']('disconnect');`);
 ```
 
-```typescript NFC Events
-// src/hooks/useNFC.ts
-window.onNdefDiscovered = (serial, message, data) => {
-    if (config?.onNdef) {
-        config.onNdef(serial, message, data);
-    }
+```typescript Battery Events
+// src/hooks/useBatteryLevel.ts
+window._fullykiosk[vId] = () => {
+    setBatteryLevel(fully.getBatteryLevel());
 };
 
-fully.bind('onNdefDiscovered', 'onNdefDiscovered("$serial", "$message", "$data");');
+fully.bind('onBatteryLevelChanged', `_fullykiosk['${vId}']();`);
 ```
 </CodeGroup>
 
@@ -284,30 +282,27 @@ const { brightness, setBrightness } = useScreenBrightness();
 This allows you to develop and test your React application in a normal browser without errors, with full functionality available when deployed to Fully Kiosk Browser.
 </Note>
 
-### Preflight Checks
+### Graceful Degradation
 
-Some hooks that require Fully to be available use preflight checks:
+Hooks return safe defaults when Fully Kiosk is not available:
 
 ```typescript
-// src/hooks/useNFC.ts
-const preflight = () => {
-    if (!is_fully()) {
-        alert('Fully not available');
-        throw new Error('Fully not available');
-    }
-};
-
-export const useNFC = (config) => {
-    const start = useCallback(() => {
-        preflight(); // Throws if not in Fully Kiosk
-        fully.nfcScanStart();
-    }, []);
+// src/hooks/useScreenSleep.ts
+export const useScreenSleep = (config) => {
+    if (!is_fully())
+        return {
+            isScreenOn: false,
+            turnOff: () => {},
+            turnOn: () => {},
+            forceSleep: () => {},
+            // ... other no-op functions
+        };
     
-    // ...
+    // Normal implementation when Fully is available
 };
 ```
 
-This pattern is used for features that can't work without Fully Kiosk, like NFC scanning.
+This pattern allows your React app to work in development mode without throwing errors.
 
 ### Function Wrapping Pattern
 

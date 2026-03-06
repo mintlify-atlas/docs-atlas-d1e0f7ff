@@ -18,9 +18,7 @@ The hardware integration hooks provide access to device sensors and peripherals 
   <Card title="useBluetooth" icon="bluetooth">
     Control and monitor Bluetooth status
   </Card>
-  <Card title="useNFC" icon="nfc">
-    Read NFC tags and NDEF messages
-  </Card>
+
   <Card title="useQRScanner" icon="qrcode">
     Scan QR codes with camera
   </Card>
@@ -215,65 +213,7 @@ function BluetoothControl() {
   The `useBluetooth` hook polls the Bluetooth status every second. This is suitable for most applications, but be aware of the performance implications in resource-constrained environments.
 </Warning>
 
-## NFC Integration
 
-The `useNFC` hook enables reading NFC tags and NDEF messages with callback-based event handling.
-
-### Basic NFC Reader
-
-```tsx
-import { useNFC } from 'node-fullykiosk';
-import { useState } from 'react';
-
-function NFCReader() {
-  const [lastTag, setLastTag] = useState<string | null>(null);
-  const [ndefData, setNdefData] = useState<string | null>(null);
-
-  const { isScanning, start, stop } = useNFC({
-    onNdef: (serial, message, data) => {
-      console.log('NDEF discovered:', { serial, message, data });
-      setLastTag(serial);
-      setNdefData(message);
-    },
-    onNfcTagDiscovered: (serial, type, message, data) => {
-      console.log('NFC tag discovered:', { serial, type, message, data });
-      setLastTag(serial);
-    },
-    onNfcTagRemoved: (serial) => {
-      console.log('NFC tag removed:', serial);
-      if (lastTag === serial) {
-        setLastTag(null);
-        setNdefData(null);
-      }
-    },
-  });
-
-  return (
-    <div>
-      <h3>NFC Reader</h3>
-      
-      <div>
-        <button onClick={start} disabled={isScanning}>
-          Start Scanning
-        </button>
-        <button onClick={stop} disabled={!isScanning}>
-          Stop Scanning
-        </button>
-      </div>
-
-      <p>Status: {isScanning ? 'Scanning...' : 'Idle'}</p>
-
-      {lastTag && (
-        <div className="tag-info">
-          <h4>Tag Information</h4>
-          <p>Serial: <code>{lastTag}</code></p>
-          {ndefData && <p>Data: <code>{ndefData}</code></p>}
-        </div>
-      )}
-    </div>
-  );
-}
-```
 
 ### NFC Access Control System
 

@@ -96,7 +96,6 @@
               "api/use-battery-level",
               "api/use-charging",
               "api/use-bluetooth",
-              "api/use-nfc",
               "api/use-qr-scanner"
             ]
           },

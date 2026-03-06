@@ -283,8 +283,8 @@ function CheckInKiosk() {
 import { 
     useWifi, 
     useBluetooth, 
-    useNFC,
-    useScreenSleep 
+    useScreenSleep,
+    useQRScanner 
 } from 'fullykiosk';
 
 function SmartHomePanel() {
@@ -292,16 +292,13 @@ function SmartHomePanel() {
     const { enabled: btEnabled, enable: enableBt } = useBluetooth();
     const { startDaydream } = useScreenSleep();
     
-    const { start: startNFC } = useNFC({
-        onNfcTagDiscovered: (serial, type) => {
-            console.log('NFC device detected:', serial);
+    const { startScanning } = useQRScanner({
+        onScan: (code) => {
+            console.log('QR code scanned:', code);
         }
     });
     
     useEffect(() => {
-        // Start NFC scanning on mount
-        startNFC();
-        
         // Enable Bluetooth for device control
         if (!btEnabled) enableBt();
     }, []);
@@ -310,6 +307,9 @@ function SmartHomePanel() {
         <div>
             <SmartDeviceControls />
             <button onClick={startDaydream}>Sleep Display</button>
+            <button onClick={() => startScanning('Scan device', '')}>
+                Scan Device QR
+            </button>
         </div>
     );
 }
