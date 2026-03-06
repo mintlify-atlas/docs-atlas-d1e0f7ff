@@ -1,0 +1,62 @@
+---
+title: useSerialNumber
+description: Get the serial number of the device
+---
+
+## Hook Signature
+
+```typescript
+const serialNumber = useSerialNumber();
+```
+
+## Return Value
+
+<ResponseField name="serialNumber" type="string | undefined">
+  The hardware serial number of the device. Returns `undefined` when running outside the Fully Kiosk Browser environment.
+</ResponseField>
+
+## Description
+
+Retrieves the hardware serial number of the Android device. This is a unique identifier assigned by the device manufacturer and is typically printed on the device hardware or packaging.
+
+## Example
+
+```typescript
+import { useSerialNumber } from 'node-fullykiosk';
+
+function DeviceInventory() {
+  const serialNumber = useSerialNumber();
+
+  if (!serialNumber) {
+    return <div>Serial number not available</div>;
+  }
+
+  return (
+    <div className="inventory-card">
+      <h3>Device Information</h3>
+      <dl>
+        <dt>Serial Number:</dt>
+        <dd>
+          <code>{serialNumber}</code>
+        </dd>
+      </dl>
+      <button onClick={() => exportInventoryData(serialNumber)}>
+        Export Device Info
+      </button>
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Returns `undefined` when not running in the Fully Kiosk Browser environment
+- The serial number is hardware-specific and cannot be changed
+- Useful for asset tracking and inventory management
+- May require specific Android permissions depending on the Android version
+
+## Related Hooks
+
+- [useAndroidId](/api/use-android-id) - Get the Android ID
+- [useDeviceId](/api/use-device-id) - Get the device ID
+- [useImei](/api/use-imei) - Get the IMEI number

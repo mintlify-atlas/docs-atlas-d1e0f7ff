@@ -1,0 +1,112 @@
+---
+title: 'useDisplaySize'
+description: 'Get the device display dimensions'
+icon: 'tv'
+---
+
+## Usage
+
+```typescript
+import { useDisplaySize } from 'node-fullykiosk';
+
+function App() {
+  const { width, height } = useDisplaySize();
+
+  return (
+    <div>
+      <p>Display: {width} × {height} pixels</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+Returns an object with the display dimensions:
+
+<ResponseField name="width" type="number | undefined">
+  The display width in pixels. Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+<ResponseField name="height" type="number | undefined">
+  The display height in pixels. Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+## Examples
+
+### Display Information
+
+```typescript
+import { useDisplaySize } from 'node-fullykiosk';
+
+function DisplayInfo() {
+  const { width, height } = useDisplaySize();
+
+  if (!width || !height) {
+    return <p>Display information not available</p>;
+  }
+
+  const aspectRatio = (width / height).toFixed(2);
+  const diagonal = Math.sqrt(width ** 2 + height ** 2).toFixed(0);
+
+  return (
+    <div>
+      <h2>Display Information</h2>
+      <p>Width: {width}px</p>
+      <p>Height: {height}px</p>
+      <p>Aspect Ratio: {aspectRatio}</p>
+      <p>Diagonal: {diagonal}px</p>
+    </div>
+  );
+}
+```
+
+### Responsive Layout Based on Display Size
+
+```typescript
+import { useDisplaySize } from 'node-fullykiosk';
+
+function ResponsiveApp() {
+  const { width, height } = useDisplaySize();
+
+  const isSmallScreen = width && width < 1024;
+  const isTallScreen = height && width && height > width * 1.5;
+
+  return (
+    <div className={`
+      ${isSmallScreen ? 'compact-mode' : 'full-mode'}
+      ${isTallScreen ? 'vertical-layout' : 'horizontal-layout'}
+    `}>
+      <p>Display: {width} × {height}</p>
+      {isSmallScreen && <p>Compact mode active</p>}
+      {isTallScreen && <p>Tall screen detected</p>}
+    </div>
+  );
+}
+```
+
+### Display Statistics
+
+```typescript
+import { useDisplaySize } from 'node-fullykiosk';
+
+function DisplayStats() {
+  const { width, height } = useDisplaySize();
+
+  if (!width || !height) return null;
+
+  const megapixels = ((width * height) / 1_000_000).toFixed(2);
+  const orientation = width > height ? 'Landscape' : 'Portrait';
+
+  return (
+    <div>
+      <h3>Screen Stats</h3>
+      <ul>
+        <li>Resolution: {width} × {height}</li>
+        <li>Megapixels: {megapixels}MP</li>
+        <li>Orientation: {orientation}</li>
+      </ul>
+    </div>
+  );
+}
+```

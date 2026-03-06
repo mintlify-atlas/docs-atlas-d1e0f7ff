@@ -1,0 +1,78 @@
+---
+title: Introduction
+description: TypeScript-friendly React Hooks for the Fully Kiosk Browser API
+---
+
+## What is node-fullykiosk?
+
+`node-fullykiosk` is a TypeScript-friendly React Hooks library that provides a modern interface to interact with the Fully Kiosk Browser API. It wraps the native Fully Kiosk Browser JavaScript API in intuitive React hooks, making it easy to build kiosk applications with React.
+
+Instead of directly accessing the global `fully` object injected by Fully Kiosk Browser, this library provides:
+
+- **Type-safe hooks** with full TypeScript support
+- **Automatic event binding** and cleanup for device state changes
+- **React-friendly patterns** that work seamlessly with your component lifecycle
+- **Zero dependencies** - only requires React as a peer dependency
+
+## What is Fully Kiosk Browser?
+
+[Fully Kiosk Browser](https://www.fully-kiosk.com/) is a powerful Android application that turns tablets and smartphones into dedicated kiosk displays. It's commonly used for:
+
+- Digital signage
+- Interactive displays
+- Smart home control panels
+- Information kiosks
+- Point-of-sale terminals
+
+Fully Kiosk Browser provides a JavaScript API that allows web applications to control device hardware and settings. This library makes that API accessible through React Hooks.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Device Information" icon="mobile">
+    Access device details like battery level, display size, network info, and device identifiers
+  </Card>
+  <Card title="Hardware Control" icon="sliders">
+    Control screen brightness, manage WiFi/Bluetooth, and interact with the keyboard
+  </Card>
+  <Card title="Event Handling" icon="bolt">
+    React to device events like battery changes, charging status, and network connectivity
+  </Card>
+  <Card title="Advanced Features" icon="qrcode">
+    Use QR scanning, NFC reading, and screen orientation detection
+  </Card>
+</CardGroup>
+
+## When to Use This Library
+
+Use `node-fullykiosk` when you're building a React application that will run inside Fully Kiosk Browser and you need to:
+
+- Monitor device status (battery, charging, network)
+- Control device hardware (screen brightness, WiFi, Bluetooth)
+- Respond to device events in your React components
+- Access device information (display size, orientation, device IDs)
+- Use advanced features like QR code scanning or NFC
+
+<Note>
+  This library is designed specifically for React applications running inside Fully Kiosk Browser. The hooks will return `undefined` when not running in the Fully Kiosk environment, allowing you to test your application in a standard browser.
+</Note>
+
+## Available Hooks
+
+The library provides over 20 hooks covering various device capabilities:
+
+- **Device Info**: `useDeviceName`, `useDeviceId`, `useAndroidId`, `useImei`, `useSerialNumber`
+- **Network**: `useWifi`, `useWifiSSID`, `useWifiSignalLevel`, `useIpv4Address`, `useIpv6Address`, `useHostname`
+- **Power**: `useBatteryLevel`, `useCharging`
+- **Display**: `useDisplaySize`, `useOrientation`, `useScreenBrightness`, `useScreenRotationLock`, `useScreenSleep`
+- **Input**: `useKeyboard`
+- **Connectivity**: `useBluetooth`, `useNFC`
+- **Scanning**: `useQRScanner`
+- **Locale**: `useCurrentLocale`
+- **Network Info**: `useMacAddress`
+
+## Next Steps
+
+<Card title="Installation" icon="download" href="/installation">
+  Install the library and set up your development environment
+</Card>

@@ -1,80 +1,424 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Build your first kiosk application with node-fullykiosk
 ---
 
-## Get started in three steps
+This guide will walk you through creating a simple kiosk dashboard that displays device information and allows control of hardware features.
 
-Get your documentation site running locally and make your first customization.
+## What We'll Build
 
-### Step 1: Set up your local environment
+We'll create a kiosk dashboard that:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+- Displays real-time battery level and charging status
+- Shows device information and display metrics
+- Controls screen brightness with a slider
+- Monitors WiFi connectivity
+
+## Step-by-Step Guide
+
+<Steps>
+  <Step title="Create a new component">
+    Create a new file `KioskDashboard.tsx` in your components directory:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```tsx
+    import React from 'react';
+    import {
+      useBatteryLevel,
+      useCharging,
+      useDeviceName,
+      useDisplaySize,
+      useScreenBrightness,
+      useWifi,
+    } from 'fullykiosk';
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    export function KioskDashboard() {
+      return (
+        <div>
+          <h1>Kiosk Dashboard</h1>
+        </div>
+      );
+    }
+    ```
+  </Step>
+  
+  <Step title="Add battery monitoring">
+    Use `useBatteryLevel` and `useCharging` to monitor power status:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```tsx
+    export function KioskDashboard() {
+      const { batteryLevel } = useBatteryLevel();
+      const { charging, chargeState } = useCharging();
+      
+      return (
+        <div className="dashboard">
+          <h1>Kiosk Dashboard</h1>
+          
+          <section className="battery-status">
+            <h2>Power Status</h2>
+            {batteryLevel !== undefined ? (
+              <>
+                <p>Battery Level: {batteryLevel}%</p>
+                <p>Charging: {charging ? 'Yes' : 'No'}</p>
+                {chargeState && <p>Charge State: {chargeState}</p>}
+              </>
+            ) : (
+              <p>Battery info not available</p>
+            )}
+          </section>
+        </div>
+      );
+    }
+    ```
+    
+    <Note>
+      `useBatteryLevel` automatically updates when the battery level changes. The hook binds to the `onBatteryLevelChanged` event and cleans up automatically when the component unmounts.
+    </Note>
+  </Step>
+  
+  <Step title="Display device information">
+    Add device name and display size using `useDeviceName` and `useDisplaySize`:
+    
+    ```tsx
+    export function KioskDashboard() {
+      const { batteryLevel } = useBatteryLevel();
+      const { charging, chargeState } = useCharging();
+      const deviceName = useDeviceName();
+      const { width, height } = useDisplaySize();
+      
+      return (
+        <div className="dashboard">
+          <h1>Kiosk Dashboard</h1>
+          
+          {/* Battery Status section */}
+          <section className="battery-status">
+            <h2>Power Status</h2>
+            {batteryLevel !== undefined ? (
+              <>
+                <p>Battery Level: {batteryLevel}%</p>
+                <p>Charging: {charging ? 'Yes' : 'No'}</p>
+                {chargeState && <p>Charge State: {chargeState}</p>}
+              </>
+            ) : (
+              <p>Battery info not available</p>
+            )}
+          </section>
+          
+          {/* Device Info section */}
+          <section className="device-info">
+            <h2>Device Information</h2>
+            <p>Device Name: {deviceName ?? 'Unknown'}</p>
+            <p>Display: {width ?? '?'} x {height ?? '?'} pixels</p>
+          </section>
+        </div>
+      );
+    }
+    ```
+  </Step>
+  
+  <Step title="Add brightness control">
+    Use `useScreenBrightness` to display and control screen brightness:
+    
+    ```tsx
+    export function KioskDashboard() {
+      const { batteryLevel } = useBatteryLevel();
+      const { charging, chargeState } = useCharging();
+      const deviceName = useDeviceName();
+      const { width, height } = useDisplaySize();
+      const { brightness, setBrightness } = useScreenBrightness();
+      
+      const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(e.target.value);
+        setBrightness(value);
+      };
+      
+      return (
+        <div className="dashboard">
+          <h1>Kiosk Dashboard</h1>
+          
+          {/* Previous sections... */}
+          
+          {/* Brightness Control section */}
+          <section className="brightness-control">
+            <h2>Screen Brightness</h2>
+            {brightness !== undefined ? (
+              <>
+                <p>Current: {brightness}/255</p>
+                <input
+                  type="range"
+                  min="0"
+                  max="255"
+                  value={brightness}
+                  onChange={handleBrightnessChange}
+                />
+              </>
+            ) : (
+              <p>Brightness control not available</p>
+            )}
+          </section>
+        </div>
+      );
+    }
+    ```
+    
+    <Note>
+      The brightness value ranges from 0 to 255, where 0 is the dimmest and 255 is the brightest. The `setBrightness` function updates both the device brightness and the local state.
+    </Note>
+  </Step>
+  
+  <Step title="Monitor WiFi connectivity">
+    Add WiFi status using `useWifi` hook:
+    
+    ```tsx
+    export function KioskDashboard() {
+      const { batteryLevel } = useBatteryLevel();
+      const { charging, chargeState } = useCharging();
+      const deviceName = useDeviceName();
+      const { width, height } = useDisplaySize();
+      const { brightness, setBrightness } = useScreenBrightness();
+      const {
+        wifiEnabled,
+        wifiConnected,
+        networkConnected,
+        enableWifi,
+        disableWifi,
+      } = useWifi();
+      
+      const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(e.target.value);
+        setBrightness(value);
+      };
+      
+      return (
+        <div className="dashboard">
+          <h1>Kiosk Dashboard</h1>
+          
+          {/* Battery Status */}
+          <section className="battery-status">
+            <h2>Power Status</h2>
+            {batteryLevel !== undefined ? (
+              <>
+                <p>Battery Level: {batteryLevel}%</p>
+                <p>Charging: {charging ? 'Yes' : 'No'}</p>
+                {chargeState && <p>Charge State: {chargeState}</p>}
+              </>
+            ) : (
+              <p>Battery info not available</p>
+            )}
+          </section>
+          
+          {/* Device Info */}
+          <section className="device-info">
+            <h2>Device Information</h2>
+            <p>Device Name: {deviceName ?? 'Unknown'}</p>
+            <p>Display: {width ?? '?'} x {height ?? '?'} pixels</p>
+          </section>
+          
+          {/* Brightness Control */}
+          <section className="brightness-control">
+            <h2>Screen Brightness</h2>
+            {brightness !== undefined ? (
+              <>
+                <p>Current: {brightness}/255</p>
+                <input
+                  type="range"
+                  min="0"
+                  max="255"
+                  value={brightness}
+                  onChange={handleBrightnessChange}
+                />
+              </>
+            ) : (
+              <p>Brightness control not available</p>
+            )}
+          </section>
+          
+          {/* WiFi Status */}
+          <section className="wifi-status">
+            <h2>Network Status</h2>
+            {wifiEnabled !== undefined ? (
+              <>
+                <p>WiFi Enabled: {wifiEnabled ? 'Yes' : 'No'}</p>
+                <p>WiFi Connected: {wifiConnected ? 'Yes' : 'No'}</p>
+                <p>Network Connected: {networkConnected ? 'Yes' : 'No'}</p>
+                <button onClick={wifiEnabled ? disableWifi : enableWifi}>
+                  {wifiEnabled ? 'Disable WiFi' : 'Enable WiFi'}
+                </button>
+              </>
+            ) : (
+              <p>WiFi status not available</p>
+            )}
+          </section>
+        </div>
+      );
+    }
+    ```
+    
+    <Warning>
+      On Android 10+, WiFi control (enable/disable) only works on provisioned devices. The buttons will have no effect on non-provisioned devices.
+    </Warning>
+  </Step>
+  
+  <Step title="Use the component">
+    Import and use the `KioskDashboard` component in your app:
+    
+    ```tsx
+    // App.tsx
+    import { KioskDashboard } from './components/KioskDashboard';
+    
+    function App() {
+      return (
+        <div className="app">
+          <KioskDashboard />
+        </div>
+      );
+    }
+    
+    export default App;
+    ```
+  </Step>
+  
+  <Step title="Test in Fully Kiosk Browser">
+    Build and deploy your application, then open it in Fully Kiosk Browser:
+    
+    1. Build your app: `npm run build`
+    2. Host the build on a web server or locally
+    3. Open the URL in Fully Kiosk Browser on your Android device
+    4. Grant necessary permissions when prompted
+    
+    You should see real-time device information and be able to control screen brightness and WiFi.
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Complete Example
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Here's the complete component code:
 
-### Step 3: Go live
+```tsx KioskDashboard.tsx
+import React from 'react';
+import {
+  useBatteryLevel,
+  useCharging,
+  useDeviceName,
+  useDisplaySize,
+  useScreenBrightness,
+  useWifi,
+} from 'fullykiosk';
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+export function KioskDashboard() {
+  const { batteryLevel } = useBatteryLevel();
+  const { charging, chargeState } = useCharging();
+  const deviceName = useDeviceName();
+  const { width, height } = useDisplaySize();
+  const { brightness, setBrightness } = useScreenBrightness();
+  const {
+    wifiEnabled,
+    wifiConnected,
+    networkConnected,
+    enableWifi,
+    disableWifi,
+  } = useWifi();
+  
+  const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    setBrightness(value);
+  };
+  
+  return (
+    <div className="dashboard">
+      <h1>Kiosk Dashboard</h1>
+      
+      <section className="battery-status">
+        <h2>Power Status</h2>
+        {batteryLevel !== undefined ? (
+          <>
+            <p>Battery Level: {batteryLevel}%</p>
+            <p>Charging: {charging ? 'Yes' : 'No'}</p>
+            {chargeState && <p>Charge State: {chargeState}</p>}
+          </>
+        ) : (
+          <p>Battery info not available</p>
+        )}
+      </section>
+      
+      <section className="device-info">
+        <h2>Device Information</h2>
+        <p>Device Name: {deviceName ?? 'Unknown'}</p>
+        <p>Display: {width ?? '?'} x {height ?? '?'} pixels</p>
+      </section>
+      
+      <section className="brightness-control">
+        <h2>Screen Brightness</h2>
+        {brightness !== undefined ? (
+          <>
+            <p>Current: {brightness}/255</p>
+            <input
+              type="range"
+              min="0"
+              max="255"
+              value={brightness}
+              onChange={handleBrightnessChange}
+            />
+          </>
+        ) : (
+          <p>Brightness control not available</p>
+        )}
+      </section>
+      
+      <section className="wifi-status">
+        <h2>Network Status</h2>
+        {wifiEnabled !== undefined ? (
+          <>
+            <p>WiFi Enabled: {wifiEnabled ? 'Yes' : 'No'}</p>
+            <p>WiFi Connected: {wifiConnected ? 'Yes' : 'No'}</p>
+            <p>Network Connected: {networkConnected ? 'Yes' : 'No'}</p>
+            <button onClick={wifiEnabled ? disableWifi : enableWifi}>
+              {wifiEnabled ? 'Disable WiFi' : 'Enable WiFi'}
+            </button>
+          </>
+        ) : (
+          <p>WiFi status not available</p>
+        )}
+      </section>
+    </div>
+  );
+}
+```
 
-## Next steps
+## Understanding the Code
 
-Now that you have your docs running, explore these key features:
+### Event Handling
+
+Hooks like `useBatteryLevel` and `useCharging` automatically bind to Fully Kiosk events:
+
+- `useBatteryLevel` listens for `onBatteryLevelChanged` events
+- `useCharging` listens for `unplugged`, `pluggedAC`, `pluggedUSB`, and `pluggedWireless` events
+- `useWifi` listens for `networkReconnect` and `networkDisconnect` events
+
+All event listeners are automatically cleaned up when components unmount.
+
+### State Management
+
+Each hook manages its own internal state using React's `useState`. When events fire, the state updates trigger re-renders of your component.
+
+### Control Functions
+
+Hooks that control hardware (like `useScreenBrightness` and `useWifi`) return callback functions that you can use in event handlers. These functions interact directly with the Fully Kiosk API.
+
+## Next Steps
+
+Now that you've built a basic kiosk dashboard, explore more advanced features:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Device Information" icon="mobile" href="/guides/device-info">
+    Access device IDs, serial numbers, and hardware details
+  </Card>
+  <Card title="Screen Control" icon="display" href="/guides/screen-control">
+    Control brightness, orientation, and screen power
+  </Card>
+  <Card title="Network Connectivity" icon="wifi" href="/guides/network-connectivity">
+    Monitor WiFi, IP addresses, and network status
+  </Card>
+  <Card title="Hardware Integration" icon="microchip" href="/guides/hardware-integration">
+    Integrate with battery, Bluetooth, NFC, and QR scanners
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

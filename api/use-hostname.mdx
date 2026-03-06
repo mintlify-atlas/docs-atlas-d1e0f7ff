@@ -1,0 +1,41 @@
+---
+title: useHostname
+description: Get the device hostname
+---
+
+## Overview
+
+Returns the current hostname of the device.
+
+```typescript
+const useHostname: () => string | undefined
+```
+
+## Usage
+
+```tsx
+import { useHostname } from 'node-fullykiosk';
+
+function DeviceInfo() {
+  const hostname = useHostname();
+
+  return (
+    <div>
+      <h2>Device Hostname</h2>
+      <p>{hostname || 'Not available'}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="hostname" type="string | undefined">
+  The device hostname, or `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+## Related Hooks
+
+- [useIpv4Address](/api/use-ipv4-address) - Get the IPv4 address
+- [useIpv6Address](/api/use-ipv6-address) - Get the IPv6 address
+- [useMacAddress](/api/use-mac-address) - Get the MAC address

@@ -1,0 +1,41 @@
+---
+title: useIpv4Address
+description: Get the device IPv4 address
+---
+
+## Overview
+
+Returns the current IPv4 address of the device.
+
+```typescript
+const useIpv4Address: () => string | undefined
+```
+
+## Usage
+
+```tsx
+import { useIpv4Address } from 'node-fullykiosk';
+
+function NetworkInfo() {
+  const ipv4 = useIpv4Address();
+
+  return (
+    <div>
+      <h2>IPv4 Address</h2>
+      <p>{ipv4 || 'No IPv4 address'}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="ipv4Address" type="string | undefined">
+  The device IPv4 address (e.g., "192.168.1.100"), or `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+## Related Hooks
+
+- [useIpv6Address](/api/use-ipv6-address) - Get the IPv6 address
+- [useHostname](/api/use-hostname) - Get the device hostname
+- [useMacAddress](/api/use-mac-address) - Get the MAC address

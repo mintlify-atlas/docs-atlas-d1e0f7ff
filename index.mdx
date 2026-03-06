@@ -1,97 +1,133 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "node-fullykiosk"
+description: "TypeScript-friendly React Hooks for the Fully Kiosk Browser App"
 ---
 
-## Setting up
+<div style={{
+  background: 'linear-gradient(135deg, #94cb04 0%, #7aa303 100%)',
+  padding: '4rem 2rem',
+  borderRadius: '8px',
+  marginBottom: '3rem',
+  color: 'white'
+}}>
+  <h1 style={{
+    fontSize: '48px',
+    fontWeight: '700',
+    marginBottom: '1rem',
+    color: 'white'
+  }}>
+    node-fullykiosk
+  </h1>
+  <p style={{
+    fontSize: '18px',
+    maxWidth: '600px',
+    opacity: '0.95',
+    color: 'white'
+  }}>
+    TypeScript-friendly React Hooks for the Fully Kiosk Browser App. Zero dependencies. Type-safe. Production-ready.
+  </p>
+</div>
 
-Get your documentation site up and running in minutes.
+## Get Started
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+Start building with node-fullykiosk in minutes.
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install the package and configure your React project
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Build your first Fully Kiosk app with React hooks
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Key Features
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="TypeScript-First" icon="code">
+    Full TypeScript support with type definitions and IntelliSense
+  </Card>
+  <Card title="Zero Dependencies" icon="leaf">
+    Lightweight library with no external dependencies
+  </Card>
+  <Card title="React Hooks" icon="react">
+    Modern React hooks API for clean, composable code
+  </Card>
+  <Card title="Production Ready" icon="check-circle">
+    Battle-tested in real-world kiosk deployments
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Core Capabilities
 
-## Need inspiration?
+Access the full Fully Kiosk Browser API through intuitive React hooks.
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Device Information" icon="mobile" href="/guides/device-info">
+    Access device ID, serial numbers, IMEI, and Android ID
+  </Card>
+  <Card title="Screen Control" icon="display" href="/guides/screen-control">
+    Control brightness, orientation, sleep mode, and rotation lock
+  </Card>
+  <Card title="Network Connectivity" icon="wifi" href="/guides/network-connectivity">
+    Monitor WiFi, IP addresses, and network status
+  </Card>
+  <Card title="Hardware Integration" icon="microchip" href="/guides/hardware-integration">
+    Integrate with battery, Bluetooth, NFC, and QR scanners
+  </Card>
+</CardGroup>
+
+## API Reference
+
+Explore the complete API documentation.
+
+<CardGroup cols={3}>
+  <Card title="Device Information" icon="info-circle" href="/api/use-android-id">
+    useAndroidId, useDeviceId, useDeviceName, useImei
+  </Card>
+  <Card title="Network" icon="network-wired" href="/api/use-hostname">
+    useHostname, useIpv4Address, useWifi, useMacAddress
+  </Card>
+  <Card title="Screen & Display" icon="desktop" href="/api/use-screen-brightness">
+    useScreenBrightness, useScreenSleep, useOrientation
+  </Card>
+  <Card title="Hardware" icon="battery-full" href="/api/use-battery-level">
+    useBatteryLevel, useCharging, useBluetooth, useNFC
+  </Card>
+  <Card title="Input & Locale" icon="keyboard" href="/api/use-keyboard">
+    useKeyboard, useCurrentLocale
+  </Card>
+  <Card title="QR Scanner" icon="qrcode" href="/api/use-qr-scanner">
+    useQRScanner
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```typescript
+import { useBatteryLevel, useWifi, useScreenBrightness } from 'fullykiosk';
+
+function KioskApp() {
+  const { batteryLevel } = useBatteryLevel();
+  const { isConnected, ssid } = useWifi();
+  const { brightness, setBrightness } = useScreenBrightness();
+
+  return (
+    <div>
+      <p>Battery: {batteryLevel}%</p>
+      <p>WiFi: {isConnected ? ssid : 'Disconnected'}</p>
+      <input
+        type="range"
+        min="0"
+        max="255"
+        value={brightness}
+        onChange={(e) => setBrightness(Number(e.target.value))}
+      />
+    </div>
+  );
+}
+```
+
+<Note>
+  This library requires the Fully Kiosk Browser app running on Android. The hooks will return `undefined` values when not running in the Fully Kiosk environment.
+</Note>

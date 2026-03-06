@@ -1,0 +1,97 @@
+---
+title: "useCurrentLocale"
+description: "Get the current locale setting of the device"
+---
+
+## Usage
+
+```tsx
+import { useCurrentLocale } from 'node-fullykiosk';
+
+function MyComponent() {
+  const locale = useCurrentLocale();
+
+  return (
+    <div>
+      <p>Current locale: {locale}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="locale" type="string | undefined">
+  The current locale setting of the device (e.g., `"en-US"`, `"de-DE"`). Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+## Examples
+
+### Display Locale Information
+
+```tsx
+import { useCurrentLocale } from 'node-fullykiosk';
+
+function LocaleDisplay() {
+  const locale = useCurrentLocale();
+
+  if (!locale) {
+    return <p>Locale information not available</p>;
+  }
+
+  const [language, region] = locale.split('-');
+
+  return (
+    <div>
+      <p>Language: {language}</p>
+      <p>Region: {region}</p>
+      <p>Full locale: {locale}</p>
+    </div>
+  );
+}
+```
+
+### Conditional Content Based on Locale
+
+```tsx
+import { useCurrentLocale } from 'node-fullykiosk';
+
+function LocalizedContent() {
+  const locale = useCurrentLocale();
+
+  const getGreeting = () => {
+    if (!locale) return 'Hello';
+    
+    if (locale.startsWith('de')) return 'Guten Tag';
+    if (locale.startsWith('es')) return 'Hola';
+    if (locale.startsWith('fr')) return 'Bonjour';
+    return 'Hello';
+  };
+
+  return <h1>{getGreeting()}</h1>;
+}
+```
+
+### Format Dates Based on Locale
+
+```tsx
+import { useCurrentLocale } from 'node-fullykiosk';
+
+function DateDisplay() {
+  const locale = useCurrentLocale();
+  const now = new Date();
+
+  const formattedDate = locale
+    ? now.toLocaleDateString(locale)
+    : now.toLocaleDateString();
+
+  return <p>Today's date: {formattedDate}</p>;
+}
+```
+
+## Notes
+
+- Returns the device's current locale setting as configured in Fully Kiosk Browser
+- Returns `undefined` when not running in Fully Kiosk Browser
+- The locale format typically follows BCP 47 language tags (e.g., `"en-US"`, `"de-DE"`, `"ja-JP"`)
+- This is a read-only hook; to change the locale, use the device's system settings

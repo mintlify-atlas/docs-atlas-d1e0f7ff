@@ -1,0 +1,419 @@
+---
+title: Screen Control
+description: Control screen brightness, power, rotation, and orientation
+icon: display
+---
+
+The screen control hooks provide comprehensive control over the device display, including brightness adjustment, power management, rotation locking, and orientation detection.
+
+## Available Hooks
+
+<CardGroup cols={2}>
+  <Card title="useScreenBrightness" icon="sun">
+    Get and set screen brightness (0-255)
+  </Card>
+  <Card title="useScreenSleep" icon="power-off">
+    Control screen power and screensaver
+  </Card>
+  <Card title="useScreenRotationLock" icon="lock">
+    Check if screen rotation is locked
+  </Card>
+  <Card title="useOrientation" icon="mobile">
+    Get current screen orientation in degrees
+  </Card>
+  <Card title="useDisplaySize" icon="expand">
+    Get display width and height
+  </Card>
+</CardGroup>
+
+## Screen Brightness Control
+
+The `useScreenBrightness` hook allows you to read and control the screen brightness level.
+
+### Basic Brightness Control
+
+```tsx
+import { useScreenBrightness } from 'node-fullykiosk';
+
+function BrightnessControl() {
+  const { brightness, setBrightness } = useScreenBrightness();
+
+  return (
+    <div>
+      <h3>Screen Brightness</h3>
+      <p>Current: {brightness ?? 'Not available'}</p>
+      
+      <input
+        type="range"
+        min="0"
+        max="255"
+        value={brightness ?? 128}
+        onChange={(e) => setBrightness(parseInt(e.target.value))}
+        disabled={brightness === undefined}
+      />
+      
+      <div>
+        <button onClick={() => setBrightness(0)}>Minimum</button>
+        <button onClick={() => setBrightness(128)}>Medium</button>
+        <button onClick={() => setBrightness(255)}>Maximum</button>
+      </div>
+    </div>
+  );
+}
+```
+
+<Note>
+  Brightness values range from **0** (minimum) to **255** (maximum). The hook returns `undefined` if Fully Kiosk Browser is not available.
+</Note>
+
+### Adaptive Brightness
+
+Implement automatic brightness adjustment based on time of day:
+
+```tsx
+import { useScreenBrightness } from 'node-fullykiosk';
+import { useEffect } from 'react';
+
+function AdaptiveBrightness() {
+  const { brightness, setBrightness } = useScreenBrightness();
+
+  useEffect(() => {
+    const adjustBrightness = () => {
+      const hour = new Date().getHours();
+      
+      // Night mode: 10 PM to 6 AM
+      if (hour >= 22 || hour < 6) {
+        setBrightness(50); // Low brightness
+      }
+      // Day mode: 6 AM to 10 PM
+      else {
+        setBrightness(200); // High brightness
+      }
+    };
+
+    // Adjust immediately
+    adjustBrightness();
+
+    // Check every hour
+    const interval = setInterval(adjustBrightness, 60 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [setBrightness]);
+
+  return (
+    <div>
+      <p>Adaptive brightness enabled</p>
+      <p>Current brightness: {brightness}</p>
+    </div>
+  );
+}
+```
+
+## Screen Power Management
+
+The `useScreenSleep` hook provides comprehensive screen power control with event callbacks.
+
+### Basic Power Control
+
+```tsx
+import { useScreenSleep } from 'node-fullykiosk';
+
+function ScreenPowerControl() {
+  const { 
+    isScreenOn, 
+    turnOn, 
+    turnOff, 
+    forceSleep,
+    startScreensaver,
+    stopScreensaver 
+  } = useScreenSleep();
+
+  return (
+    <div>
+      <h3>Screen Power</h3>
+      <p>Status: {isScreenOn ? 'On' : 'Off'}</p>
+      
+      <button onClick={turnOn}>Turn On</button>
+      <button onClick={turnOff}>Turn Off</button>
+      <button onClick={forceSleep}>Force Sleep</button>
+      
+      <h4>Screensaver</h4>
+      <button onClick={startScreensaver}>Start</button>
+      <button onClick={stopScreensaver}>Stop</button>
+    </div>
+  );
+}
+```
+
+### Power Events with Callbacks
+
+React to screen power events:
+
+```tsx
+import { useScreenSleep } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function ScreenPowerMonitor() {
+  const [events, setEvents] = useState<string[]>([]);
+
+  const { isScreenOn, turnOn, turnOff } = useScreenSleep({
+    screenOn: () => {
+      console.log('Screen turned on');
+      setEvents(prev => [...prev, `Screen ON at ${new Date().toLocaleTimeString()}`]);
+    },
+    screenOff: () => {
+      console.log('Screen turned off');
+      setEvents(prev => [...prev, `Screen OFF at ${new Date().toLocaleTimeString()}`]);
+    },
+  });
+
+  return (
+    <div>
+      <h3>Screen Power Monitor</h3>
+      <p>Current status: {isScreenOn ? 'On' : 'Off'}</p>
+      
+      <button onClick={turnOff}>Turn Off</button>
+      <button onClick={turnOn}>Turn On</button>
+      
+      <h4>Event Log</h4>
+      <ul>
+        {events.map((event, i) => (
+          <li key={i}>{event}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Daydream Control
+
+Manage Android daydream (screensaver) functionality:
+
+```tsx
+import { useScreenSleep } from 'node-fullykiosk';
+
+function DaydreamControl() {
+  const { startDaydream, stopDaydream } = useScreenSleep();
+
+  const handleUserInactive = () => {
+    // Start daydream after 5 minutes of inactivity
+    setTimeout(() => {
+      startDaydream();
+    }, 5 * 60 * 1000);
+  };
+
+  const handleUserActive = () => {
+    stopDaydream();
+  };
+
+  return (
+    <div 
+      onMouseMove={handleUserActive}
+      onTouchStart={handleUserActive}
+    >
+      <h3>Daydream Demo</h3>
+      <button onClick={startDaydream}>Start Daydream</button>
+      <button onClick={stopDaydream}>Stop Daydream</button>
+    </div>
+  );
+}
+```
+
+## Screen Orientation
+
+### Get Current Orientation
+
+```tsx
+import { useOrientation } from 'node-fullykiosk';
+
+function OrientationDisplay() {
+  const orientation = useOrientation();
+
+  const getOrientationLabel = (degrees: number | undefined) => {
+    if (degrees === undefined) return 'Unknown';
+    if (degrees === 0) return 'Portrait';
+    if (degrees === 90) return 'Landscape (Left)';
+    if (degrees === 180) return 'Portrait (Upside Down)';
+    if (degrees === 270) return 'Landscape (Right)';
+    return `${degrees}°`;
+  };
+
+  return (
+    <div>
+      <h3>Screen Orientation</h3>
+      <p>Degrees: {orientation ?? 'Not available'}</p>
+      <p>Direction: {getOrientationLabel(orientation)}</p>
+    </div>
+  );
+}
+```
+
+### Rotation Lock Status
+
+```tsx
+import { useScreenRotationLock } from 'node-fullykiosk';
+
+function RotationLockStatus() {
+  const isLocked = useScreenRotationLock();
+
+  return (
+    <div>
+      <h3>Rotation Lock</h3>
+      <p>
+        Status: {isLocked === undefined 
+          ? 'Unknown' 
+          : isLocked 
+            ? 'Locked' 
+            : 'Unlocked'
+        }
+      </p>
+      {isLocked && (
+        <p className="info">Screen rotation is currently locked</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Display Size
+
+Get the physical display dimensions:
+
+```tsx
+import { useDisplaySize } from 'node-fullykiosk';
+
+function DisplayInfo() {
+  const { width, height } = useDisplaySize();
+
+  return (
+    <div>
+      <h3>Display Size</h3>
+      <p>Width: {width ?? 'Unknown'} px</p>
+      <p>Height: {height ?? 'Unknown'} px</p>
+      {width && height && (
+        <>
+          <p>Aspect Ratio: {(width / height).toFixed(2)}</p>
+          <p>Total Pixels: {(width * height).toLocaleString()}</p>
+        </>
+      )}
+    </div>
+  );
+}
+```
+
+## Complete Screen Control Panel
+
+Combine all screen control features into a comprehensive panel:
+
+```tsx
+import { 
+  useScreenBrightness, 
+  useScreenSleep, 
+  useOrientation,
+  useDisplaySize,
+  useScreenRotationLock 
+} from 'node-fullykiosk';
+import { useState } from 'react';
+
+function ScreenControlPanel() {
+  const { brightness, setBrightness } = useScreenBrightness();
+  const { isScreenOn, turnOn, turnOff } = useScreenSleep();
+  const orientation = useOrientation();
+  const { width, height } = useDisplaySize();
+  const rotationLocked = useScreenRotationLock();
+  const [log, setLog] = useState<string[]>([]);
+
+  const addLog = (message: string) => {
+    setLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
+  };
+
+  return (
+    <div className="screen-control-panel">
+      <h2>Screen Control Panel</h2>
+      
+      <section>
+        <h3>Display Information</h3>
+        <ul>
+          <li>Size: {width} x {height} px</li>
+          <li>Orientation: {orientation}°</li>
+          <li>Rotation: {rotationLocked ? 'Locked' : 'Unlocked'}</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Brightness Control</h3>
+        <input
+          type="range"
+          min="0"
+          max="255"
+          value={brightness ?? 128}
+          onChange={(e) => {
+            const value = parseInt(e.target.value);
+            setBrightness(value);
+            addLog(`Brightness set to ${value}`);
+          }}
+        />
+        <span>{brightness}</span>
+      </section>
+
+      <section>
+        <h3>Power Control</h3>
+        <p>Screen is currently: {isScreenOn ? 'ON' : 'OFF'}</p>
+        <button 
+          onClick={() => {
+            turnOff();
+            addLog('Screen turned off');
+          }}
+        >
+          Turn Off
+        </button>
+        <button 
+          onClick={() => {
+            turnOn();
+            addLog('Screen turned on');
+          }}
+        >
+          Turn On
+        </button>
+      </section>
+
+      <section>
+        <h3>Activity Log</h3>
+        <ul>
+          {log.slice(-5).reverse().map((entry, i) => (
+            <li key={i}>{entry}</li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Check for undefined values">
+    Always handle cases where hooks return `undefined` (Fully not available)
+  </Step>
+  <Step title="Debounce brightness changes">
+    When using sliders, consider debouncing to avoid excessive API calls
+  </Step>
+  <Step title="Respect user preferences">
+    Don't override system settings without user consent
+  </Step>
+  <Step title="Clean up event listeners">
+    The hooks handle cleanup automatically, but be mindful of component unmounting
+  </Step>
+</Steps>
+
+<Warning>
+  Changing screen brightness or power state can significantly impact user experience. Always provide clear UI feedback and allow users to override automatic settings.
+</Warning>
+
+## Related Hooks
+
+- [Device Information](/guides/device-info) - Access device identifiers
+- [Hardware Integration](/guides/hardware-integration) - Battery and sensor control
+- [Network Connectivity](/guides/network-connectivity) - Network monitoring

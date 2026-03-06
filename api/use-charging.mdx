@@ -1,0 +1,186 @@
+---
+title: 'useCharging'
+description: 'Monitor device charging status and power source'
+---
+
+React hook that provides real-time charging status and power source information for the device.
+
+## Import
+
+```typescript
+import { useCharging } from 'node-fullykiosk';
+```
+
+## Usage
+
+```tsx
+import { useCharging } from 'node-fullykiosk';
+
+function ChargingStatus() {
+  const { charging, chargeState } = useCharging();
+
+  if (charging === undefined) {
+    return <div>Fully Kiosk not available</div>;
+  }
+
+  return (
+    <div>
+      <h2>Power Status</h2>
+      <p>Charging: {charging ? 'Yes' : 'No'}</p>
+      <p>Source: {chargeState}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="charging" type="boolean | undefined">
+  Indicates whether the device is currently charging. Returns `undefined` if Fully Kiosk is not available.
+</ResponseField>
+
+<ResponseField name="chargeState" type="PlugStates | undefined">
+  The specific charging state or power source. Returns `undefined` if Fully Kiosk is not available.
+</ResponseField>
+
+## Types
+
+```typescript
+type PlugStates =
+  | 'plugged'        // Generic plugged state
+  | 'unplugged'      // Device is not charging
+  | 'pluggedUSB'     // Charging via USB
+  | 'pluggedAC'      // Charging via AC adapter
+  | 'pluggedWireless' // Charging wirelessly
+```
+
+## Behavior
+
+- Automatically subscribes to charging state changes
+- Updates in real-time when the device is plugged/unplugged
+- Detects different power sources (USB, AC, wireless)
+- Returns `undefined` for both values when Fully Kiosk is not available
+- Automatically cleans up event listeners on unmount
+
+## Example: Charging Indicator
+
+```tsx
+import { useCharging } from 'node-fullykiosk';
+
+function ChargingIndicator() {
+  const { charging, chargeState } = useCharging();
+
+  if (charging === undefined) return null;
+
+  const getChargingIcon = () => {
+    switch (chargeState) {
+      case 'pluggedAC':
+        return '🔌';
+      case 'pluggedUSB':
+        return '💻';
+      case 'pluggedWireless':
+        return '⚡';
+      case 'unplugged':
+        return '🔋';
+      default:
+        return '🔋';
+    }
+  };
+
+  const getChargingLabel = () => {
+    switch (chargeState) {
+      case 'pluggedAC':
+        return 'AC Charging';
+      case 'pluggedUSB':
+        return 'USB Charging';
+      case 'pluggedWireless':
+        return 'Wireless Charging';
+      case 'unplugged':
+        return 'On Battery';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  return (
+    <div style={{
+      padding: '12px',
+      backgroundColor: charging ? '#4CAF50' : '#757575',
+      color: 'white',
+      borderRadius: '8px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px'
+    }}>
+      <span style={{ fontSize: '24px' }}>{getChargingIcon()}</span>
+      <span>{getChargingLabel()}</span>
+    </div>
+  );
+}
+```
+
+## Example: Power Management
+
+```tsx
+import { useCharging } from 'node-fullykiosk';
+import { useBatteryLevel } from 'node-fullykiosk';
+import { useEffect } from 'react';
+
+function PowerManager() {
+  const { charging, chargeState } = useCharging();
+  const { batteryLevel } = useBatteryLevel();
+
+  useEffect(() => {
+    // Implement power-saving mode when on battery and low
+    if (!charging && batteryLevel !== undefined && batteryLevel < 20) {
+      console.log('Enabling power-saving mode');
+      // Reduce brightness, disable animations, etc.
+    }
+  }, [charging, batteryLevel]);
+
+  return (
+    <div>
+      <h3>Power Status</h3>
+      <div>
+        <p>Battery: {batteryLevel}%</p>
+        <p>State: {charging ? 'Charging' : 'On Battery'}</p>
+        {chargeState && <p>Source: {chargeState}</p>}
+      </div>
+      {!charging && batteryLevel && batteryLevel < 20 && (
+        <div style={{ color: 'orange' }}>
+          Power-saving mode active
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Example: Charge Type Display
+
+```tsx
+import { useCharging } from 'node-fullykiosk';
+
+function ChargeTypeDisplay() {
+  const { charging, chargeState } = useCharging();
+
+  const isUsbCharging = chargeState === 'pluggedUSB';
+  const isAcCharging = chargeState === 'pluggedAC';
+  const isWirelessCharging = chargeState === 'pluggedWireless';
+
+  return (
+    <div>
+      {charging ? (
+        <div>
+          <h4>Charging via:</h4>
+          {isUsbCharging && <p>USB (slower charging)</p>}
+          {isAcCharging && <p>AC Adapter (fast charging)</p>}
+          {isWirelessCharging && <p>Wireless Charger</p>}
+        </div>
+      ) : (
+        <p>Running on battery power</p>
+      )}
+    </div>
+  );
+}
+```

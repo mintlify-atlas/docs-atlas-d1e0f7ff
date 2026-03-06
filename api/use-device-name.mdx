@@ -1,0 +1,47 @@
+---
+title: useDeviceName
+description: Get the name of the device
+---
+
+## Hook Signature
+
+```typescript
+const deviceName = useDeviceName();
+```
+
+## Return Value
+
+<ResponseField name="deviceName" type="string | undefined">
+  The device name as configured in Android settings. Returns `undefined` when running outside the Fully Kiosk Browser environment.
+</ResponseField>
+
+## Description
+
+Retrieves the human-readable name of the device as configured in the Android system settings. This is typically set by the user or administrator and can be useful for displaying device information in a user-friendly way.
+
+## Example
+
+```typescript
+import { useDeviceName } from 'node-fullykiosk';
+
+function DeviceHeader() {
+  const deviceName = useDeviceName();
+
+  return (
+    <header>
+      <h1>Kiosk Dashboard</h1>
+      {deviceName && (
+        <p className="device-label">
+          Device: {deviceName}
+        </p>
+      )}
+    </header>
+  );
+}
+```
+
+## Notes
+
+- Returns `undefined` when not running in the Fully Kiosk Browser environment
+- The device name can be changed by the user in Android settings
+- Useful for displaying friendly device identifiers in multi-device deployments

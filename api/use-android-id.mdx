@@ -1,0 +1,47 @@
+---
+title: useAndroidId
+description: Get the Android ID of the device
+---
+
+## Hook Signature
+
+```typescript
+const androidId = useAndroidId();
+```
+
+## Return Value
+
+<ResponseField name="androidId" type="string | undefined">
+  The Android ID of the device. Returns `undefined` when running outside the Fully Kiosk Browser environment.
+</ResponseField>
+
+## Description
+
+Retrieves the unique Android ID assigned to the device. This is a 64-bit number (as a hex string) that is randomly generated when the user first sets up the device and remains constant for the lifetime of the user's device.
+
+## Example
+
+```typescript
+import { useAndroidId } from 'node-fullykiosk';
+
+function DeviceInfo() {
+  const androidId = useAndroidId();
+
+  if (!androidId) {
+    return <div>Not running in Fully Kiosk Browser</div>;
+  }
+
+  return (
+    <div>
+      <h2>Device Information</h2>
+      <p>Android ID: {androidId}</p>
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Returns `undefined` when not running in the Fully Kiosk Browser environment
+- The Android ID is unique to each device and user combination
+- This value persists across app reinstalls but may change if the device is factory reset

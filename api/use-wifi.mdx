@@ -1,0 +1,89 @@
+---
+title: useWifi
+description: Manage and monitor WiFi connection status
+---
+
+## Overview
+
+Provides WiFi status information and methods to control WiFi functionality. Returns an object with WiFi state and control methods.
+
+```typescript
+const useWifi: () => {
+  wifiEnabled: boolean | undefined;
+  wifiConnected: boolean | undefined;
+  networkConnected: boolean | undefined;
+  enableWifi: () => void;
+  disableWifi: () => void;
+  openWifiSettings: () => void;
+}
+```
+
+## Usage
+
+```tsx
+import { useWifi } from 'node-fullykiosk';
+
+function WiFiControl() {
+  const { 
+    wifiEnabled, 
+    wifiConnected, 
+    networkConnected,
+    enableWifi, 
+    disableWifi, 
+    openWifiSettings 
+  } = useWifi();
+
+  return (
+    <div>
+      <h2>WiFi Status</h2>
+      <p>WiFi Enabled: {wifiEnabled ? 'Yes' : 'No'}</p>
+      <p>WiFi Connected: {wifiConnected ? 'Yes' : 'No'}</p>
+      <p>Network Connected: {networkConnected ? 'Yes' : 'No'}</p>
+      
+      <button onClick={enableWifi}>Enable WiFi</button>
+      <button onClick={disableWifi}>Disable WiFi</button>
+      <button onClick={openWifiSettings}>Open WiFi Settings</button>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="wifiEnabled" type="boolean | undefined">
+  Whether WiFi is enabled on the device. Returns `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+<ResponseField name="wifiConnected" type="boolean | undefined">
+  Whether the device is connected to a WiFi network. Returns `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+<ResponseField name="networkConnected" type="boolean | undefined">
+  Whether the device has an active network connection. Returns `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+<ResponseField name="enableWifi" type="() => void">
+  Method to enable WiFi on the device.
+</ResponseField>
+
+<ResponseField name="disableWifi" type="() => void">
+  Method to disable WiFi on the device.
+</ResponseField>
+
+<ResponseField name="openWifiSettings" type="() => void">
+  Method to open the system WiFi settings screen.
+</ResponseField>
+
+## Events
+
+This hook automatically registers event listeners for network state changes:
+
+- `networkReconnect` - Triggered when network reconnects
+- `networkDisconnect` - Triggered when network disconnects
+
+## Related Hooks
+
+- [useWifiSSID](/api/use-wifi-ssid) - Get the connected WiFi network name
+- [useWifiSignalLevel](/api/use-wifi-signal-level) - Get the WiFi signal strength
+- [useIpv4Address](/api/use-ipv4-address) - Get the IPv4 address
+- [useMacAddress](/api/use-mac-address) - Get the MAC address

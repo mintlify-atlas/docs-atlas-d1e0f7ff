@@ -1,0 +1,484 @@
+---
+title: Network Connectivity
+description: Monitor and manage network status, WiFi, and network interfaces
+icon: wifi
+---
+
+The network connectivity hooks provide comprehensive access to network information including WiFi status, IP addresses, MAC addresses, and network signal strength.
+
+## Available Hooks
+
+<CardGroup cols={2}>
+  <Card title="useWifi" icon="wifi">
+    Monitor and control WiFi connectivity
+  </Card>
+  <Card title="useWifiSSID" icon="signal">
+    Get current WiFi network name
+  </Card>
+  <Card title="useWifiSignalLevel" icon="signal-bars">
+    Monitor WiFi signal strength
+  </Card>
+  <Card title="useHostname" icon="server">
+    Get device hostname
+  </Card>
+  <Card title="useIpv4Address" icon="network-wired">
+    Get IPv4 address
+  </Card>
+  <Card title="useIpv6Address" icon="network-wired">
+    Get IPv6 address
+  </Card>
+  <Card title="useMacAddress" icon="fingerprint">
+    Get MAC address for network interfaces
+  </Card>
+</CardGroup>
+
+## WiFi Management
+
+The `useWifi` hook provides complete WiFi control and status monitoring.
+
+### Basic WiFi Control
+
+```tsx
+import { useWifi } from 'node-fullykiosk';
+
+function WiFiControl() {
+  const { 
+    wifiEnabled, 
+    wifiConnected, 
+    networkConnected,
+    enableWifi, 
+    disableWifi,
+    openWifiSettings 
+  } = useWifi();
+
+  return (
+    <div>
+      <h3>WiFi Status</h3>
+      <ul>
+        <li>WiFi Enabled: {wifiEnabled ? 'Yes' : 'No'}</li>
+        <li>WiFi Connected: {wifiConnected ? 'Yes' : 'No'}</li>
+        <li>Network Connected: {networkConnected ? 'Yes' : 'No'}</li>
+      </ul>
+      
+      <div>
+        <button onClick={enableWifi} disabled={wifiEnabled}>
+          Enable WiFi
+        </button>
+        <button onClick={disableWifi} disabled={!wifiEnabled}>
+          Disable WiFi
+        </button>
+        <button onClick={openWifiSettings}>
+          Open Settings
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+### WiFi Network Information
+
+Get detailed information about the current WiFi network:
+
+```tsx
+import { useWifi, useWifiSSID, useWifiSignalLevel } from 'node-fullykiosk';
+
+function WiFiNetworkInfo() {
+  const { wifiConnected } = useWifi();
+  const ssid = useWifiSSID();
+  const signalLevel = useWifiSignalLevel();
+
+  const getSignalQuality = (level: number | undefined) => {
+    if (level === undefined) return 'Unknown';
+    if (level >= -50) return 'Excellent';
+    if (level >= -60) return 'Good';
+    if (level >= -70) return 'Fair';
+    return 'Poor';
+  };
+
+  if (!wifiConnected) {
+    return <p>Not connected to WiFi</p>;
+  }
+
+  return (
+    <div>
+      <h3>WiFi Network</h3>
+      <dl>
+        <dt>Network Name (SSID):</dt>
+        <dd>{ssid ?? 'Unknown'}</dd>
+        
+        <dt>Signal Strength:</dt>
+        <dd>{signalLevel} dBm ({getSignalQuality(signalLevel)})</dd>
+      </dl>
+    </div>
+  );
+}
+```
+
+## Network Addresses
+
+### IP Address Display
+
+Show both IPv4 and IPv6 addresses:
+
+```tsx
+import { useIpv4Address, useIpv6Address, useHostname } from 'node-fullykiosk';
+
+function NetworkAddresses() {
+  const ipv4 = useIpv4Address();
+  const ipv6 = useIpv6Address();
+  const hostname = useHostname();
+
+  return (
+    <div>
+      <h3>Network Addresses</h3>
+      <table>
+        <tbody>
+          <tr>
+            <th>Hostname:</th>
+            <td>{hostname ?? 'Not available'}</td>
+          </tr>
+          <tr>
+            <th>IPv4 Address:</th>
+            <td><code>{ipv4 ?? 'Not available'}</code></td>
+          </tr>
+          <tr>
+            <th>IPv6 Address:</th>
+            <td><code>{ipv6 ?? 'Not available'}</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+### MAC Address Lookup
+
+Get MAC addresses for specific network interfaces:
+
+```tsx
+import { useMacAddress } from 'node-fullykiosk';
+
+function MACAddressInfo() {
+  // Get default MAC address
+  const defaultMac = useMacAddress();
+  
+  // Get MAC for specific interface
+  const wlan0Mac = useMacAddress({ network_interface: 'wlan0' });
+  const eth0Mac = useMacAddress({ network_interface: 'eth0' });
+
+  return (
+    <div>
+      <h3>MAC Addresses</h3>
+      <ul>
+        <li>Default: <code>{defaultMac ?? 'N/A'}</code></li>
+        <li>wlan0: <code>{wlan0Mac ?? 'N/A'}</code></li>
+        <li>eth0: <code>{eth0Mac ?? 'N/A'}</code></li>
+      </ul>
+    </div>
+  );
+}
+```
+
+## Network Status Dashboard
+
+Build a comprehensive network monitoring dashboard:
+
+```tsx
+import { 
+  useWifi, 
+  useWifiSSID, 
+  useWifiSignalLevel,
+  useIpv4Address,
+  useIpv6Address,
+  useHostname,
+  useMacAddress 
+} from 'node-fullykiosk';
+import { useEffect, useState } from 'react';
+
+interface NetworkStatus {
+  timestamp: string;
+  connected: boolean;
+  signalLevel?: number;
+}
+
+function NetworkDashboard() {
+  const { wifiEnabled, wifiConnected, networkConnected, enableWifi, openWifiSettings } = useWifi();
+  const ssid = useWifiSSID();
+  const signalLevel = useWifiSignalLevel();
+  const ipv4 = useIpv4Address();
+  const ipv6 = useIpv6Address();
+  const hostname = useHostname();
+  const macAddress = useMacAddress();
+  const [history, setHistory] = useState<NetworkStatus[]>([]);
+
+  // Track connection history
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHistory(prev => [
+        ...prev.slice(-9), // Keep last 10 entries
+        {
+          timestamp: new Date().toISOString(),
+          connected: wifiConnected ?? false,
+          signalLevel,
+        },
+      ]);
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [wifiConnected, signalLevel]);
+
+  const getSignalBars = (level: number | undefined) => {
+    if (level === undefined) return '○○○○';
+    if (level >= -50) return '████';
+    if (level >= -60) return '███○';
+    if (level >= -70) return '██○○';
+    if (level >= -80) return '█○○○';
+    return '○○○○';
+  };
+
+  return (
+    <div className="network-dashboard">
+      <h2>Network Status Dashboard</h2>
+
+      {!wifiEnabled ? (
+        <div className="alert warning">
+          <p>WiFi is disabled</p>
+          <button onClick={enableWifi}>Enable WiFi</button>
+        </div>
+      ) : !wifiConnected ? (
+        <div className="alert error">
+          <p>Not connected to WiFi</p>
+          <button onClick={openWifiSettings}>Open WiFi Settings</button>
+        </div>
+      ) : (
+        <div className="status-grid">
+          <section>
+            <h3>Connection Status</h3>
+            <div className="status-indicator connected">
+              Connected
+            </div>
+            <p>Network: <strong>{ssid}</strong></p>
+            <p>Signal: {getSignalBars(signalLevel)} {signalLevel} dBm</p>
+          </section>
+
+          <section>
+            <h3>Network Configuration</h3>
+            <table>
+              <tbody>
+                <tr>
+                  <td>Hostname:</td>
+                  <td><code>{hostname}</code></td>
+                </tr>
+                <tr>
+                  <td>IPv4:</td>
+                  <td><code>{ipv4}</code></td>
+                </tr>
+                <tr>
+                  <td>IPv6:</td>
+                  <td><code>{ipv6 ?? 'Not configured'}</code></td>
+                </tr>
+                <tr>
+                  <td>MAC:</td>
+                  <td><code>{macAddress}</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section>
+            <h3>Connection History</h3>
+            <div className="history-chart">
+              {history.map((entry, i) => (
+                <div 
+                  key={i} 
+                  className={`history-bar ${entry.connected ? 'connected' : 'disconnected'}`}
+                  title={`${new Date(entry.timestamp).toLocaleTimeString()}: ${entry.connected ? 'Connected' : 'Disconnected'}`}
+                  style={{ 
+                    height: entry.signalLevel 
+                      ? `${Math.max(0, 100 + entry.signalLevel)}%` 
+                      : '0%' 
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Connection Quality Monitor
+
+Track and alert on connection quality issues:
+
+```tsx
+import { useWifi, useWifiSignalLevel } from 'node-fullykiosk';
+import { useEffect, useState } from 'react';
+
+function ConnectionQualityMonitor() {
+  const { wifiConnected } = useWifi();
+  const signalLevel = useWifiSignalLevel();
+  const [alerts, setAlerts] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!wifiConnected) {
+      setAlerts(prev => [...prev, 'WiFi disconnected']);
+      return;
+    }
+
+    if (signalLevel !== undefined && signalLevel < -80) {
+      setAlerts(prev => [...prev, `Weak signal: ${signalLevel} dBm`]);
+    }
+  }, [wifiConnected, signalLevel]);
+
+  const clearAlerts = () => setAlerts([]);
+
+  return (
+    <div>
+      <h3>Connection Quality</h3>
+      
+      {wifiConnected ? (
+        <div className={signalLevel && signalLevel >= -70 ? 'status-good' : 'status-warning'}>
+          <p>Signal: {signalLevel} dBm</p>
+          {signalLevel && signalLevel < -70 && (
+            <p className="warning">Signal strength is weak</p>
+          )}
+        </div>
+      ) : (
+        <div className="status-error">
+          <p>Not connected</p>
+        </div>
+      )}
+
+      {alerts.length > 0 && (
+        <div className="alerts">
+          <h4>Recent Alerts</h4>
+          <ul>
+            {alerts.slice(-5).map((alert, i) => (
+              <li key={i}>{alert}</li>
+            ))}
+          </ul>
+          <button onClick={clearAlerts}>Clear Alerts</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Network Diagnostics Tool
+
+Create a comprehensive network diagnostic display:
+
+```tsx
+import { 
+  useWifi, 
+  useWifiSSID,
+  useIpv4Address,
+  useHostname,
+  useMacAddress 
+} from 'node-fullykiosk';
+
+function NetworkDiagnostics() {
+  const wifi = useWifi();
+  const ssid = useWifiSSID();
+  const ipv4 = useIpv4Address();
+  const hostname = useHostname();
+  const macAddress = useMacAddress();
+
+  const diagnostics = [
+    { 
+      label: 'WiFi Hardware', 
+      status: wifi.wifiEnabled ? 'OK' : 'Disabled',
+      severity: wifi.wifiEnabled ? 'success' : 'warning'
+    },
+    { 
+      label: 'WiFi Connection', 
+      status: wifi.wifiConnected ? 'Connected' : 'Not Connected',
+      severity: wifi.wifiConnected ? 'success' : 'error'
+    },
+    { 
+      label: 'Network Access', 
+      status: wifi.networkConnected ? 'Available' : 'Unavailable',
+      severity: wifi.networkConnected ? 'success' : 'error'
+    },
+    { 
+      label: 'SSID', 
+      status: ssid ?? 'N/A',
+      severity: ssid ? 'success' : 'info'
+    },
+    { 
+      label: 'IP Address', 
+      status: ipv4 ?? 'Not assigned',
+      severity: ipv4 ? 'success' : 'warning'
+    },
+    { 
+      label: 'Hostname', 
+      status: hostname ?? 'Unknown',
+      severity: hostname ? 'success' : 'info'
+    },
+    { 
+      label: 'MAC Address', 
+      status: macAddress ?? 'Unknown',
+      severity: macAddress ? 'success' : 'info'
+    },
+  ];
+
+  return (
+    <div>
+      <h2>Network Diagnostics</h2>
+      <table className="diagnostics-table">
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {diagnostics.map((item, i) => (
+            <tr key={i} className={`severity-${item.severity}`}>
+              <td>{item.label}</td>
+              <td><code>{item.status}</code></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Handle undefined states">
+    All network hooks return `undefined` when Fully is not available
+  </Step>
+  <Step title="Monitor connection changes">
+    Use event callbacks to react to network state changes
+  </Step>
+  <Step title="Implement retry logic">
+    Network operations can fail - always implement proper error handling
+  </Step>
+  <Step title="Cache network info">
+    Consider caching network information to reduce API calls
+  </Step>
+</Steps>
+
+<Note>
+  The `useWifi` hook includes event bindings for `networkReconnect` and `networkDisconnect` events, allowing you to react to network changes in real-time.
+</Note>
+
+<Warning>
+  Enabling or disabling WiFi affects the entire device. Always provide clear user feedback and confirmation before making these changes.
+</Warning>
+
+## Related Hooks
+
+- [Device Information](/guides/device-info) - Access device identifiers
+- [Screen Control](/guides/screen-control) - Display management
+- [Hardware Integration](/guides/hardware-integration) - Hardware sensors and controls

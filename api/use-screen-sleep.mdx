@@ -1,0 +1,148 @@
+---
+title: 'useScreenSleep'
+description: 'Control screen power state and screensaver'
+icon: 'moon'
+---
+
+## Usage
+
+```typescript
+import { useScreenSleep } from 'node-fullykiosk';
+
+function App() {
+  const { isScreenOn, turnOff, turnOn } = useScreenSleep({
+    screenOff: () => console.log('Screen turned off'),
+    screenOn: () => console.log('Screen turned on'),
+  });
+
+  return (
+    <div>
+      <p>Screen is {isScreenOn ? 'on' : 'off'}</p>
+      <button onClick={turnOff}>Turn Off</button>
+      <button onClick={turnOn}>Turn On</button>
+    </div>
+  );
+}
+```
+
+## Parameters
+
+<ParamField path="config" type="ScreenSleepConfig" optional>
+  Configuration object for screen sleep callbacks.
+  
+  <Expandable title="properties">
+    <ResponseField name="screenOff" type="() => void" optional>
+      Callback function invoked when the screen turns off.
+    </ResponseField>
+    
+    <ResponseField name="screenOn" type="() => void" optional>
+      Callback function invoked when the screen turns on.
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+## Return Value
+
+Returns an object with the following properties:
+
+<ResponseField name="isScreenOn" type="boolean">
+  Indicates whether the screen is currently on. Returns `false` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+<ResponseField name="turnOff" type="() => void">
+  Function to turn the screen off.
+</ResponseField>
+
+<ResponseField name="turnOn" type="() => void">
+  Function to turn the screen on.
+</ResponseField>
+
+<ResponseField name="forceSleep" type="() => void">
+  Function to force the device into sleep mode.
+</ResponseField>
+
+<ResponseField name="startScreensaver" type="() => void">
+  Function to start the screensaver.
+</ResponseField>
+
+<ResponseField name="stopScreensaver" type="() => void">
+  Function to stop the screensaver.
+</ResponseField>
+
+<ResponseField name="startDaydream" type="() => void">
+  Function to start the Android Daydream (screensaver).
+</ResponseField>
+
+<ResponseField name="stopDaydream" type="() => void">
+  Function to stop the Android Daydream.
+</ResponseField>
+
+## Examples
+
+### Screen Power Controls
+
+```typescript
+import { useScreenSleep } from 'node-fullykiosk';
+
+function ScreenControls() {
+  const { isScreenOn, turnOff, turnOn, forceSleep } = useScreenSleep();
+
+  return (
+    <div>
+      <p>Screen Status: {isScreenOn ? 'On' : 'Off'}</p>
+      <button onClick={turnOff}>Turn Off Screen</button>
+      <button onClick={turnOn}>Turn On Screen</button>
+      <button onClick={forceSleep}>Force Sleep</button>
+    </div>
+  );
+}
+```
+
+### Screensaver Management
+
+```typescript
+import { useScreenSleep } from 'node-fullykiosk';
+
+function ScreensaverControls() {
+  const { startScreensaver, stopScreensaver } = useScreenSleep();
+
+  return (
+    <div>
+      <button onClick={startScreensaver}>Start Screensaver</button>
+      <button onClick={stopScreensaver}>Stop Screensaver</button>
+    </div>
+  );
+}
+```
+
+### Screen Event Monitoring
+
+```typescript
+import { useScreenSleep } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function ScreenMonitor() {
+  const [events, setEvents] = useState<string[]>([]);
+
+  const { isScreenOn } = useScreenSleep({
+    screenOn: () => {
+      setEvents(prev => [...prev, `Screen turned on at ${new Date().toLocaleTimeString()}`]);
+    },
+    screenOff: () => {
+      setEvents(prev => [...prev, `Screen turned off at ${new Date().toLocaleTimeString()}`]);
+    },
+  });
+
+  return (
+    <div>
+      <p>Current state: {isScreenOn ? 'On' : 'Off'}</p>
+      <h3>Event Log:</h3>
+      <ul>
+        {events.map((event, i) => (
+          <li key={i}>{event}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```

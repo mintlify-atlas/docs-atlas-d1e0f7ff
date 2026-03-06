@@ -1,0 +1,74 @@
+---
+title: useMacAddress
+description: Get the device MAC address
+---
+
+## Overview
+
+Returns the MAC address of the device. Optionally accepts a configuration object to specify a network interface.
+
+```typescript
+const useMacAddress: (config?: { network_interface?: string }) => string | undefined
+```
+
+## Usage
+
+### Default Network Interface
+
+```tsx
+import { useMacAddress } from 'node-fullykiosk';
+
+function DeviceInfo() {
+  const macAddress = useMacAddress();
+
+  return (
+    <div>
+      <h2>MAC Address</h2>
+      <p>{macAddress || 'Not available'}</p>
+    </div>
+  );
+}
+```
+
+### Specific Network Interface
+
+```tsx
+import { useMacAddress } from 'node-fullykiosk';
+
+function NetworkInterfaces() {
+  const wifiMac = useMacAddress({ network_interface: 'wlan0' });
+  const ethernetMac = useMacAddress({ network_interface: 'eth0' });
+
+  return (
+    <div>
+      <h2>Network Interfaces</h2>
+      <p>WiFi (wlan0): {wifiMac || 'Not available'}</p>
+      <p>Ethernet (eth0): {ethernetMac || 'Not available'}</p>
+    </div>
+  );
+}
+```
+
+## Parameters
+
+<ParamField path="config" type="object" optional>
+  Configuration object for specifying network interface.
+  
+  <Expandable title="properties">
+    <ParamField path="network_interface" type="string" optional>
+      The name of the network interface (e.g., "wlan0", "eth0"). If not provided, returns the MAC address of the default interface.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Return Value
+
+<ResponseField name="macAddress" type="string | undefined">
+  The MAC address of the specified network interface (e.g., "00:1A:2B:3C:4D:5E"), or `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+## Related Hooks
+
+- [useIpv4Address](/api/use-ipv4-address) - Get the IPv4 address
+- [useIpv6Address](/api/use-ipv6-address) - Get the IPv6 address
+- [useHostname](/api/use-hostname) - Get the device hostname

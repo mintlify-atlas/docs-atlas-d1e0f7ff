@@ -1,122 +1,114 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "node-fullykiosk",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#94cb04",
+    "light": "#545454",
+    "dark": "#94cb04"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "/logo-light.png",
+    "dark": "/logo-light.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/v3xlabs/node-fullykiosk"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/v3xlabs/node-fullykiosk"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/how-it-works",
+              "concepts/fully-kiosk-browser"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Guides",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/device-info",
+              "guides/screen-control",
+              "guides/network-connectivity",
+              "guides/hardware-integration"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Device Information",
             "pages": [
-              "api-reference/introduction"
+              "api/use-android-id",
+              "api/use-device-id",
+              "api/use-device-name",
+              "api/use-imei",
+              "api/use-serial-number",
+              "api/use-sim-serial-number"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Network",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/use-hostname",
+              "api/use-ipv4-address",
+              "api/use-ipv6-address",
+              "api/use-mac-address",
+              "api/use-wifi",
+              "api/use-wifi-ssid",
+              "api/use-wifi-signal-level"
+            ]
+          },
+          {
+            "group": "Screen & Display",
+            "pages": [
+              "api/use-screen-brightness",
+              "api/use-screen-sleep",
+              "api/use-screen-rotation-lock",
+              "api/use-orientation",
+              "api/use-display-size"
+            ]
+          },
+          {
+            "group": "Hardware",
+            "pages": [
+              "api/use-battery-level",
+              "api/use-charging",
+              "api/use-bluetooth",
+              "api/use-nfc",
+              "api/use-qr-scanner"
+            ]
+          },
+          {
+            "group": "Input & Locale",
+            "pages": [
+              "api/use-keyboard",
+              "api/use-current-locale"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

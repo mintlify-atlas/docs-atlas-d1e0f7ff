@@ -1,0 +1,374 @@
+---
+title: How It Works
+description: Understanding the architecture and implementation of node-fullykiosk
+---
+
+## Architecture Overview
+
+The `node-fullykiosk` library provides TypeScript-friendly React hooks that wrap the Fully Kiosk Browser JavaScript API. The architecture consists of three main layers:
+
+1. **Detection Layer** - Checks if the app is running inside Fully Kiosk Browser
+2. **Hook Layer** - React hooks that manage state and event subscriptions
+3. **Event Binding Layer** - Connects Fully Kiosk events to React state updates
+
+<Info>
+All hooks are designed to fail gracefully when not running in Fully Kiosk Browser, returning `undefined` values instead of throwing errors.
+</Info>
+
+## The window.fully Object
+
+Fully Kiosk Browser exposes a global `fully` object on the `window` that provides access to device functionality:
+
+```typescript
+// Available globally when running in Fully Kiosk Browser
+window.fully.getBatteryLevel(); // Returns battery percentage
+window.fully.getDeviceName();   // Returns device name
+window.fully.turnScreenOff();   // Turns screen off
+```
+
+The library wraps these functions in React hooks to provide:
+- **Type safety** via TypeScript definitions
+- **Reactive updates** when device state changes
+- **Automatic cleanup** when components unmount
+
+### Detection Mechanism
+
+The library detects if Fully Kiosk is available using a simple check (src/utils/is_fully.ts:2):
+
+```typescript
+export const is_fully = () => !!window['fully' as any];
+```
+
+This function is called at the start of every hook to determine if the Fully API is available.
+
+## Hook Interface Pattern
+
+Each hook follows a consistent pattern for interfacing with the Fully Kiosk API:
+
+### Read-Only Hooks
+
+Simple hooks that return device information:
+
+```typescript
+// src/hooks/useOrientation.ts
+export const useOrientation = () => {
+    if (!is_fully()) return;
+    
+    return fully.getScreenOrientation();
+};
+```
+
+<Accordion title="View example usage">
+```tsx
+import { useOrientation } from 'fullykiosk';
+
+function DeviceInfo() {
+    const orientation = useOrientation();
+    
+    return <div>Orientation: {orientation}°</div>;
+}
+```
+</Accordion>
+
+### Stateful Hooks with Events
+
+Hooks that maintain state and listen to device events:
+
+```typescript
+// src/hooks/useBatteryLevel.ts (simplified)
+export const useBatteryLevel = () => {
+    if (!is_fully()) return { batteryLevel: undefined };
+    
+    const [batteryLevel, setBatteryLevel] = useState<number>(
+        fully.getBatteryLevel()
+    );
+    
+    const vId = useMemo(() => Math.random().toString(36).slice(2, 11), []);
+    
+    useEffect(() => {
+        // Store callback in global registry
+        window._fullykiosk[vId] = () => {
+            setBatteryLevel(fully.getBatteryLevel());
+        };
+        
+        // Bind to Fully Kiosk event
+        fully.bind('onBatteryLevelChanged', `_fullykiosk['${vId}']();`);
+        
+        // Cleanup on unmount
+        return () => {
+            window._fullykiosk[vId] = undefined;
+        };
+    }, []);
+    
+    return { batteryLevel };
+};
+```
+
+<Warning>
+The event binding mechanism requires generating unique IDs for each hook instance to prevent conflicts between multiple components using the same hook.
+</Warning>
+
+### Control Hooks
+
+Hooks that provide methods to control device features:
+
+```typescript
+// src/hooks/useScreenBrightness.ts (simplified)
+export const useScreenBrightness = () => {
+    if (!is_fully()) {
+        return {
+            brightness: undefined,
+            setBrightness: () => {}
+        };
+    }
+    
+    const [brightness, setLocalBrightness] = useState<number>(
+        fully.getScreenBrightness()
+    );
+    
+    const setBrightness = useCallback((brightness: number) => {
+        fully.setScreenBrightness(brightness);
+        setLocalBrightness(fully.getScreenBrightness());
+    }, []);
+    
+    return { brightness, setBrightness };
+};
+```
+
+## Event Binding Mechanism
+
+Fully Kiosk Browser uses a string-based event binding system. The library bridges this to React's state management using the `window._fullykiosk` registry.
+
+### How Event Binding Works
+
+1. **Create unique identifier** for each hook instance:
+   ```typescript
+   const vId = useMemo(() => Math.random().toString(36).slice(2, 11), []);
+   ```
+
+2. **Register callback** in the global `_fullykiosk` object:
+   ```typescript
+   window._fullykiosk[vId] = () => {
+       setBatteryLevel(fully.getBatteryLevel());
+   };
+   ```
+
+3. **Bind to Fully event** using string code:
+   ```typescript
+   fully.bind('onBatteryLevelChanged', `_fullykiosk['${vId}']();`);
+   ```
+
+4. **Cleanup on unmount**:
+   ```typescript
+   return () => {
+       window._fullykiosk[vId] = undefined;
+   };
+   ```
+
+<CodeGroup>
+```typescript Keyboard Events
+// src/hooks/useKeyboard.ts
+window._fullykiosk[vId] = (state: 'show' | 'hide') => {
+    setKeyboardVisible(state === 'show');
+};
+
+fully.bind('hideKeyboard', `_fullykiosk['${vId}']('hide');`);
+fully.bind('showKeyboard', `_fullykiosk['${vId}']('show');`);
+```
+
+```typescript Network Events
+// src/hooks/useWifi.ts
+window._fullykiosk[vId] = (state: 'reconnect' | 'disconnect') => {
+    alert(state);
+};
+
+fully.bind('networkReconnect', `_fullykiosk['${vId}']('reconnect');`);
+fully.bind('networkDisconnect', `_fullykiosk['${vId}']('disconnect');`);
+```
+
+```typescript NFC Events
+// src/hooks/useNFC.ts
+window.onNdefDiscovered = (serial, message, data) => {
+    if (config?.onNdef) {
+        config.onNdef(serial, message, data);
+    }
+};
+
+fully.bind('onNdefDiscovered', 'onNdefDiscovered("$serial", "$message", "$data");');
+```
+</CodeGroup>
+
+### The _fullykiosk Registry Pattern
+
+The `window._fullykiosk` object serves as a callback registry initialized in each hook:
+
+```typescript
+window._fullykiosk = window._fullykiosk || {};
+```
+
+This pattern allows:
+- Multiple hook instances to coexist without conflicts
+- Safe cleanup when components unmount
+- Bridge between Fully's string-based events and React callbacks
+
+<Tip>
+The random ID generation ensures each hook instance has a unique namespace in the global registry, preventing event handler collisions.
+</Tip>
+
+## TypeScript Type Safety
+
+The library provides comprehensive TypeScript definitions for the entire Fully Kiosk API in `src/global.d.ts`.
+
+### Global Type Declarations
+
+```typescript
+declare global {
+    interface Window {
+        _fullykiosk: {
+            [key: string]: any;
+        };
+    }
+    
+    let fully: {
+        getBatteryLevel(): number;
+        getScreenBrightness(): number;
+        isWifiEnabled(): boolean;
+        // ... 100+ more methods
+    };
+}
+```
+
+These type definitions provide:
+- **Autocomplete** for all Fully Kiosk methods
+- **Type checking** for parameters and return values
+- **Version comments** indicating API availability (e.g., "ver. 1.44+")
+- **Parameter documentation** for complex methods
+
+### Example with Full Type Safety
+
+```typescript
+import { useScreenBrightness } from 'fullykiosk';
+
+function BrightnessControl() {
+    const { brightness, setBrightness } = useScreenBrightness();
+    //    ^? number | undefined
+    //                  ^? (brightness: number) => void
+    
+    // TypeScript knows brightness is a number between 0-255
+    return (
+        <div>
+            <span>Current: {brightness}</span>
+            <button onClick={() => setBrightness(128)}>50%</button>
+        </div>
+    );
+}
+```
+
+## Error Handling
+
+### Graceful Degradation
+
+When not running in Fully Kiosk Browser, hooks return safe default values:
+
+```typescript
+// Returns undefined instead of throwing
+const { batteryLevel } = useBatteryLevel();
+// batteryLevel will be undefined if not in Fully Kiosk
+
+// Control functions become no-ops
+const { brightness, setBrightness } = useScreenBrightness();
+// setBrightness() does nothing if not in Fully Kiosk
+```
+
+<Note>
+This allows you to develop and test your React application in a normal browser without errors, with full functionality available when deployed to Fully Kiosk Browser.
+</Note>
+
+### Preflight Checks
+
+Some hooks that require Fully to be available use preflight checks:
+
+```typescript
+// src/hooks/useNFC.ts
+const preflight = () => {
+    if (!is_fully()) {
+        alert('Fully not available');
+        throw new Error('Fully not available');
+    }
+};
+
+export const useNFC = (config) => {
+    const start = useCallback(() => {
+        preflight(); // Throws if not in Fully Kiosk
+        fully.nfcScanStart();
+    }, []);
+    
+    // ...
+};
+```
+
+This pattern is used for features that can't work without Fully Kiosk, like NFC scanning.
+
+### Function Wrapping Pattern
+
+The library includes a utility for wrapping Fully functions with automatic detection:
+
+```typescript
+// src/utils/basic_hook.ts
+export const wrapBasicFunction = <T, K>(fn: (...v: K[]) => T) => 
+    (...v: K[]) => {
+        if (!is_fully()) {
+            return;
+        }
+        return fn(...v) as T;
+    };
+```
+
+This utility ensures functions only execute when Fully is available.
+
+## Component Lifecycle
+
+Understanding how hooks interact with React's lifecycle:
+
+```typescript
+function MyComponent() {
+    // 1. Hook initializes on mount
+    const { batteryLevel } = useBatteryLevel();
+    //    - Checks is_fully()
+    //    - Gets initial value
+    //    - Registers event listener
+    
+    // 2. Component receives updates
+    //    - Fully fires onBatteryLevelChanged
+    //    - Callback updates React state
+    //    - Component re-renders
+    
+    // 3. Cleanup on unmount
+    //    - useEffect cleanup runs
+    //    - Removes callback from _fullykiosk registry
+    
+    return <div>Battery: {batteryLevel}%</div>;
+}
+```
+
+<Accordion title="Complete lifecycle example">
+```typescript
+import { useKeyboard } from 'fullykiosk';
+
+function KeyboardManager() {
+    const { keyboardVisible, showKeyboard, hideKeyboard } = useKeyboard();
+    
+    useEffect(() => {
+        console.log('Keyboard visibility changed:', keyboardVisible);
+    }, [keyboardVisible]);
+    
+    return (
+        <div>
+            <p>Keyboard is {keyboardVisible ? 'visible' : 'hidden'}</p>
+            <button onClick={showKeyboard}>Show</button>
+            <button onClick={hideKeyboard}>Hide</button>
+        </div>
+    );
+}
+```
+</Accordion>

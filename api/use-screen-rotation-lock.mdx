@@ -1,0 +1,78 @@
+---
+title: 'useScreenRotationLock'
+description: 'Check if screen rotation is locked'
+icon: 'lock-keyhole'
+---
+
+## Usage
+
+```typescript
+import { useScreenRotationLock } from 'node-fullykiosk';
+
+function App() {
+  const isLocked = useScreenRotationLock();
+
+  return (
+    <div>
+      <p>Screen rotation is {isLocked ? 'locked' : 'unlocked'}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+Returns a boolean value:
+
+<ResponseField name="isLocked" type="boolean | undefined">
+  `true` if screen rotation is locked, `false` if unlocked. Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+## Examples
+
+### Rotation Status Display
+
+```typescript
+import { useScreenRotationLock } from 'node-fullykiosk';
+
+function RotationStatus() {
+  const isLocked = useScreenRotationLock();
+
+  if (isLocked === undefined) {
+    return <p>Not running in Fully Kiosk Browser</p>;
+  }
+
+  return (
+    <div>
+      <p>
+        Screen rotation is currently {isLocked ? 'locked' : 'unlocked'}
+      </p>
+      {isLocked && (
+        <div className="alert">
+          ⚠️ Screen rotation is locked. The display will not auto-rotate.
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Conditional UI Based on Lock Status
+
+```typescript
+import { useScreenRotationLock } from 'node-fullykiosk';
+
+function OrientationWarning() {
+  const isLocked = useScreenRotationLock();
+
+  return (
+    <div>
+      {isLocked ? (
+        <p>This device is in fixed orientation mode.</p>
+      ) : (
+        <p>This device supports auto-rotation.</p>
+      )}
+    </div>
+  );
+}
+```

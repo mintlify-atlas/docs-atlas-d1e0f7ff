@@ -1,0 +1,390 @@
+---
+title: Fully Kiosk Browser
+description: Understanding Fully Kiosk Browser and its JavaScript API
+---
+
+## What is Fully Kiosk Browser?
+
+Fully Kiosk Browser is a powerful Android app that transforms tablets and smartphones into dedicated kiosk systems, digital signage displays, or information panels. It's designed for:
+
+- **Retail displays** - Product catalogs, price displays, self-service kiosks
+- **Digital signage** - Information boards, wayfinding systems, dashboards
+- **IoT control panels** - Smart home interfaces, industrial controls
+- **Public information** - Event schedules, building directories, reception systems
+
+<Info>
+Fully Kiosk Browser is available for Android devices and provides extensive device control through its JavaScript API.
+</Info>
+
+## Key Capabilities
+
+Fully Kiosk Browser provides web applications with access to device features that are normally unavailable to web browsers:
+
+### Device Information
+
+Access detailed device and network information:
+
+```javascript
+fully.getDeviceName();      // "Samsung Galaxy Tab A"
+fully.getAndroidVersion();  // "11"
+fully.getBatteryLevel();    // 85
+fully.getIp4Address();      // "192.168.1.100"
+fully.getWifiSsid();        // "Office-WiFi"
+```
+
+### Hardware Control
+
+Direct control over device hardware:
+
+<CodeGroup>
+```javascript Screen Control
+fully.turnScreenOn();
+fully.turnScreenOff();
+fully.setScreenBrightness(128); // 0-255
+fully.getScreenOrientation();   // 0, 90, 180, 270
+```
+
+```javascript Network Control
+fully.enableWifi();
+fully.disableWifi();
+fully.openWifiSettings();
+fully.isWifiConnected(); // true/false
+```
+
+```javascript Audio Control
+fully.setAudioVolume(15, 3); // level, stream
+fully.playSound(url, loop);
+fully.stopSound();
+fully.textToSpeech("Hello world");
+```
+</CodeGroup>
+
+### Sensors & Peripherals
+
+Access to device sensors and peripheral hardware:
+
+```javascript
+// NFC
+fully.nfcScanStart();
+fully.bind('onNdefDiscovered', 'handleNFC("$serial", "$message");');
+
+// QR Code Scanner
+fully.scanQrCode("Scan code", "callback-url");
+
+// Bluetooth
+fully.enableBluetooth();
+fully.btOpenByMac("00:11:22:33:44:55");
+
+// Motion Detection
+fully.startMotionDetection();
+fully.bind('onMotion', 'handleMotion();');
+```
+
+### Event System
+
+Real-time events for device state changes:
+
+```javascript
+// Power events
+fully.bind('screenOn', 'handleScreenOn();');
+fully.bind('screenOff', 'handleScreenOff();');
+fully.bind('pluggedAC', 'handleCharging();');
+fully.bind('onBatteryLevelChanged', 'updateBattery();');
+
+// Network events
+fully.bind('networkDisconnect', 'handleOffline();');
+fully.bind('networkReconnect', 'handleOnline();');
+
+// User input events
+fully.bind('showKeyboard', 'keyboardShown();');
+fully.bind('hideKeyboard', 'keyboardHidden();');
+```
+
+<Warning>
+Fully Kiosk's event binding uses string-based callbacks. The `node-fullykiosk` library handles this complexity for you with proper React state management.
+</Warning>
+
+## How the JavaScript API Works
+
+### Global API Object
+
+Fully Kiosk Browser injects a global `fully` object into the JavaScript context of web pages:
+
+```javascript
+// Check if running in Fully Kiosk
+if (window.fully) {
+    console.log('Running in Fully Kiosk Browser');
+    console.log('Version:', fully.getFullyVersion());
+}
+```
+
+### Synchronous Methods
+
+Most API methods are synchronous and return values immediately:
+
+```javascript
+const battery = fully.getBatteryLevel();  // Returns immediately
+const ssid = fully.getWifiSsid();         // Returns immediately
+const isPlugged = fully.isPlugged();      // Returns immediately
+```
+
+### Event-Based Methods
+
+Some operations use event callbacks for asynchronous results:
+
+```javascript
+// QR Code scanning
+fully.bind('onQrScanSuccess', 'handleScan("$code");');
+fully.bind('onQrScanCancelled', 'handleCancel();');
+fully.scanQrCode("Scan your badge", "result-url");
+
+// File downloads
+fully.bind('onDownloadSuccess', 'downloadDone("$url", "$fileLength");');
+fully.bind('onDownloadFailure', 'downloadFailed("$url", "$code");');
+fully.downloadFile("https://example.com/file.zip", "/sdcard/");
+```
+
+<Note>
+The `node-fullykiosk` library converts these string-based callbacks into proper TypeScript function callbacks for a better developer experience.
+</Note>
+
+## Requirements for Using This Library
+
+### Android Device Requirements
+
+<Accordion title="Minimum Requirements">
+- **Android Version**: 5.0 (Lollipop) or higher recommended
+- **Fully Kiosk Browser**: Latest version recommended
+- **Device Type**: Tablet or smartphone
+- **Permissions**: Grant required permissions in Android settings
+</Accordion>
+
+### Fully Kiosk Browser Setup
+
+1. **Install Fully Kiosk Browser** from Google Play Store or APK
+2. **Enable JavaScript** in Fully settings (enabled by default)
+3. **Configure Plus features** (optional, for advanced API access)
+4. **Grant permissions** for hardware access (camera, location, etc.)
+
+<Info>
+Some features require **Fully Kiosk Plus** (paid version), such as:
+- Camera and video recording
+- Advanced motion detection
+- Device administration features
+- Kiosk mode lockdown
+</Info>
+
+### React Application Requirements
+
+To use `node-fullykiosk` in your React application:
+
+```bash
+npm install fullykiosk
+# or
+pnpm add fullykiosk
+# or
+yarn add fullykiosk
+```
+
+**Peer Dependencies:**
+- React 16.8+ (hooks support)
+- TypeScript 4.0+ (optional, for type checking)
+
+### Development Environment
+
+You can develop without Fully Kiosk Browser installed:
+
+```typescript
+import { useBatteryLevel } from 'fullykiosk';
+
+function BatteryWidget() {
+    const { batteryLevel } = useBatteryLevel();
+    
+    // batteryLevel will be undefined in regular browser
+    // All functionality works when deployed to Fully Kiosk
+    return (
+        <div>
+            Battery: {batteryLevel ?? 'Not available'}%
+        </div>
+    );
+}
+```
+
+<Tip>
+Develop in your regular browser, test in Fully Kiosk Browser on device. All hooks gracefully handle the absence of the Fully API.
+</Tip>
+
+## Common Use Cases
+
+### Digital Signage Dashboard
+
+```typescript
+import { 
+    useBatteryLevel, 
+    useCharging,
+    useScreenBrightness,
+    useOrientation 
+} from 'fullykiosk';
+
+function SignageDashboard() {
+    const { batteryLevel } = useBatteryLevel();
+    const { charging } = useCharging();
+    const { brightness, setBrightness } = useScreenBrightness();
+    const orientation = useOrientation();
+    
+    // Auto-adjust brightness based on battery
+    useEffect(() => {
+        if (batteryLevel < 20 && !charging) {
+            setBrightness(100); // Dim to save battery
+        }
+    }, [batteryLevel, charging]);
+    
+    return (
+        <div style={{ transform: `rotate(${orientation}deg)` }}>
+            <YourContentHere />
+        </div>
+    );
+}
+```
+
+### Kiosk Check-in System
+
+```typescript
+import { useQRScanner, useKeyboard } from 'fullykiosk';
+
+function CheckInKiosk() {
+    const { scannedQR, startScanning } = useQRScanner({
+        onScan: (code) => {
+            // Process check-in
+            console.log('Checked in:', code);
+        }
+    });
+    
+    const { showKeyboard, hideKeyboard } = useKeyboard();
+    
+    return (
+        <div>
+            <button onClick={() => startScanning('Scan badge', 'd')}>
+                Scan Badge
+            </button>
+            <input 
+                onFocus={showKeyboard}
+                onBlur={hideKeyboard}
+                placeholder="Or enter code"
+            />
+        </div>
+    );
+}
+```
+
+### Smart Home Control Panel
+
+```typescript
+import { 
+    useWifi, 
+    useBluetooth, 
+    useNFC,
+    useScreenSleep 
+} from 'fullykiosk';
+
+function SmartHomePanel() {
+    const { wifiEnabled, openWifiSettings } = useWifi();
+    const { enabled: btEnabled, enable: enableBt } = useBluetooth();
+    const { startDaydream } = useScreenSleep();
+    
+    const { start: startNFC } = useNFC({
+        onNfcTagDiscovered: (serial, type) => {
+            console.log('NFC device detected:', serial);
+        }
+    });
+    
+    useEffect(() => {
+        // Start NFC scanning on mount
+        startNFC();
+        
+        // Enable Bluetooth for device control
+        if (!btEnabled) enableBt();
+    }, []);
+    
+    return (
+        <div>
+            <SmartDeviceControls />
+            <button onClick={startDaydream}>Sleep Display</button>
+        </div>
+    );
+}
+```
+
+### Retail Price Display
+
+```typescript
+import { 
+    useDeviceName,
+    useScreenRotationLock,
+    useDisplaySize 
+} from 'fullykiosk';
+
+function PriceDisplay() {
+    const deviceName = useDeviceName();
+    const rotationLocked = useScreenRotationLock();
+    const { width, height } = useDisplaySize();
+    
+    // Log device info for inventory management
+    useEffect(() => {
+        console.log('Display:', deviceName, `${width}x${height}`);
+    }, []);
+    
+    return (
+        <div>
+            <ProductPricing />
+            {!rotationLocked && (
+                <Warning>Rotation not locked</Warning>
+            )}
+        </div>
+    );
+}
+```
+
+## Official Documentation
+
+For comprehensive information about Fully Kiosk Browser:
+
+- **Official Website**: [https://www.fully-kiosk.com](https://www.fully-kiosk.com)
+- **JavaScript API Reference**: [https://www.fully-kiosk.com/en/help/javascript-api/](https://www.fully-kiosk.com/en/help/javascript-api/)
+- **Configuration Guide**: [https://www.fully-kiosk.com/en/help/](https://www.fully-kiosk.com/en/help/)
+- **REST API Documentation**: [https://www.fully-kiosk.com/en/help/rest-api/](https://www.fully-kiosk.com/en/help/rest-api/)
+
+<Warning>
+Always refer to the official Fully Kiosk documentation for:
+- Version-specific feature availability
+- Android version compatibility
+- Permission requirements
+- Plus vs Free feature differences
+</Warning>
+
+## Version Compatibility
+
+Different Fully Kiosk features became available in different versions:
+
+| Feature | Minimum Version |
+|---------|----------------|
+| Basic device info | 1.0+ |
+| WiFi signal level | 1.30+ |
+| Screen orientation | 1.40.2+ |
+| WiFi BSSID | 1.44+ |
+| Face detection count | 1.48+ |
+
+<Tip>
+Check `fully.getFullyVersion()` at runtime to conditionally enable features based on the installed Fully Kiosk version.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore Hooks" icon="code" href="/api/use-android-id">
+    Browse all available React hooks in the API Reference
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/installation">
+    Set up your first project
+  </Card>
+</CardGroup>

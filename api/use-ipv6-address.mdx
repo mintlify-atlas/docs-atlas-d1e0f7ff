@@ -1,0 +1,41 @@
+---
+title: useIpv6Address
+description: Get the device IPv6 address
+---
+
+## Overview
+
+Returns the current IPv6 address of the device.
+
+```typescript
+const useIpv6Address: () => string | undefined
+```
+
+## Usage
+
+```tsx
+import { useIpv6Address } from 'node-fullykiosk';
+
+function NetworkInfo() {
+  const ipv6 = useIpv6Address();
+
+  return (
+    <div>
+      <h2>IPv6 Address</h2>
+      <p>{ipv6 || 'No IPv6 address'}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="ipv6Address" type="string | undefined">
+  The device IPv6 address (e.g., "2001:0db8:85a3:0000:0000:8a2e:0370:7334"), or `undefined` if Fully Kiosk Browser is not available.
+</ResponseField>
+
+## Related Hooks
+
+- [useIpv4Address](/api/use-ipv4-address) - Get the IPv4 address
+- [useHostname](/api/use-hostname) - Get the device hostname
+- [useMacAddress](/api/use-mac-address) - Get the MAC address

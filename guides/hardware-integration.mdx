@@ -1,0 +1,684 @@
+---
+title: Hardware Integration
+description: Integrate with device hardware including battery, Bluetooth, NFC, and QR scanners
+icon: microchip
+---
+
+The hardware integration hooks provide access to device sensors and peripherals including battery status, Bluetooth, NFC readers, and QR code scanners.
+
+## Available Hooks
+
+<CardGroup cols={2}>
+  <Card title="useBatteryLevel" icon="battery-full">
+    Monitor battery level with real-time updates
+  </Card>
+  <Card title="useCharging" icon="plug">
+    Track charging status and power source
+  </Card>
+  <Card title="useBluetooth" icon="bluetooth">
+    Control and monitor Bluetooth status
+  </Card>
+  <Card title="useNFC" icon="nfc">
+    Read NFC tags and NDEF messages
+  </Card>
+  <Card title="useQRScanner" icon="qrcode">
+    Scan QR codes with camera
+  </Card>
+</CardGroup>
+
+## Battery Monitoring
+
+The `useBatteryLevel` hook provides real-time battery level monitoring with automatic updates.
+
+### Basic Battery Display
+
+```tsx
+import { useBatteryLevel } from 'node-fullykiosk';
+
+function BatteryIndicator() {
+  const { batteryLevel } = useBatteryLevel();
+
+  const getBatteryIcon = (level: number | undefined) => {
+    if (level === undefined) return '?';
+    if (level > 75) return '🔋';
+    if (level > 50) return '🔋';
+    if (level > 25) return '🪫';
+    return '🪫';
+  };
+
+  return (
+    <div>
+      <span>{getBatteryIcon(batteryLevel)}</span>
+      <span>{batteryLevel ?? '--'}%</span>
+    </div>
+  );
+}
+```
+
+<Note>
+  The `useBatteryLevel` hook automatically subscribes to battery level changes and updates in real-time using the `onBatteryLevelChanged` event.
+</Note>
+
+### Charging Status Monitor
+
+Track charging status and power source type:
+
+```tsx
+import { useCharging, useBatteryLevel } from 'node-fullykiosk';
+
+function PowerStatus() {
+  const { batteryLevel } = useBatteryLevel();
+  const { charging, chargeState } = useCharging();
+
+  const getChargeTypeLabel = (state: string | undefined) => {
+    if (!state) return 'Unknown';
+    switch (state) {
+      case 'pluggedAC': return 'AC Adapter';
+      case 'pluggedUSB': return 'USB';
+      case 'pluggedWireless': return 'Wireless';
+      case 'unplugged': return 'Not charging';
+      default: return 'Charging';
+    }
+  };
+
+  return (
+    <div>
+      <h3>Power Status</h3>
+      <p>Battery Level: {batteryLevel}%</p>
+      <p>Status: {charging ? 'Charging' : 'Not Charging'}</p>
+      <p>Power Source: {getChargeTypeLabel(chargeState)}</p>
+      
+      {charging && batteryLevel !== undefined && batteryLevel < 100 && (
+        <p className="info">Charging in progress...</p>
+      )}
+      {batteryLevel !== undefined && batteryLevel < 20 && !charging && (
+        <p className="warning">Low battery! Please charge device.</p>
+      )}
+    </div>
+  );
+}
+```
+
+### Battery Health Dashboard
+
+Create a comprehensive battery monitoring dashboard:
+
+```tsx
+import { useBatteryLevel, useCharging } from 'node-fullykiosk';
+import { useEffect, useState } from 'react';
+
+interface BatterySnapshot {
+  timestamp: string;
+  level: number;
+  charging: boolean;
+}
+
+function BatteryDashboard() {
+  const { batteryLevel } = useBatteryLevel();
+  const { charging, chargeState } = useCharging();
+  const [history, setHistory] = useState<BatterySnapshot[]>([]);
+
+  useEffect(() => {
+    if (batteryLevel === undefined) return;
+
+    setHistory(prev => [
+      ...prev.slice(-20), // Keep last 20 readings
+      {
+        timestamp: new Date().toISOString(),
+        level: batteryLevel,
+        charging: charging ?? false,
+      },
+    ]);
+  }, [batteryLevel]);
+
+  const getHealthStatus = () => {
+    if (batteryLevel === undefined) return 'Unknown';
+    if (batteryLevel > 80) return 'Excellent';
+    if (batteryLevel > 50) return 'Good';
+    if (batteryLevel > 20) return 'Fair';
+    return 'Critical';
+  };
+
+  return (
+    <div className="battery-dashboard">
+      <h2>Battery Dashboard</h2>
+      
+      <div className="battery-gauge">
+        <div 
+          className="battery-fill" 
+          style={{ 
+            width: `${batteryLevel ?? 0}%`,
+            backgroundColor: batteryLevel && batteryLevel > 20 ? '#4CAF50' : '#F44336'
+          }}
+        />
+        <span className="battery-text">{batteryLevel}%</span>
+      </div>
+
+      <div className="status-grid">
+        <div>
+          <strong>Health:</strong> {getHealthStatus()}
+        </div>
+        <div>
+          <strong>Charging:</strong> {charging ? 'Yes' : 'No'}
+        </div>
+        <div>
+          <strong>Source:</strong> {chargeState}
+        </div>
+      </div>
+
+      <div className="battery-history">
+        <h3>Recent History</h3>
+        {history.slice(-5).reverse().map((snapshot, i) => (
+          <div key={i}>
+            {new Date(snapshot.timestamp).toLocaleTimeString()}: {snapshot.level}%
+            {snapshot.charging && ' (charging)'}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## Bluetooth Control
+
+The `useBluetooth` hook provides Bluetooth status monitoring and control.
+
+### Basic Bluetooth Control
+
+```tsx
+import { useBluetooth } from 'node-fullykiosk';
+
+function BluetoothControl() {
+  const { enabled, enable, disable, openSettings } = useBluetooth();
+
+  return (
+    <div>
+      <h3>Bluetooth</h3>
+      <p>Status: {enabled ? 'Enabled' : 'Disabled'}</p>
+      
+      <button onClick={enable} disabled={enabled}>
+        Enable Bluetooth
+      </button>
+      <button onClick={disable} disabled={!enabled}>
+        Disable Bluetooth
+      </button>
+      <button onClick={openSettings}>
+        Open Settings
+      </button>
+    </div>
+  );
+}
+```
+
+<Warning>
+  The `useBluetooth` hook polls the Bluetooth status every second. This is suitable for most applications, but be aware of the performance implications in resource-constrained environments.
+</Warning>
+
+## NFC Integration
+
+The `useNFC` hook enables reading NFC tags and NDEF messages with callback-based event handling.
+
+### Basic NFC Reader
+
+```tsx
+import { useNFC } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function NFCReader() {
+  const [lastTag, setLastTag] = useState<string | null>(null);
+  const [ndefData, setNdefData] = useState<string | null>(null);
+
+  const { isScanning, start, stop } = useNFC({
+    onNdef: (serial, message, data) => {
+      console.log('NDEF discovered:', { serial, message, data });
+      setLastTag(serial);
+      setNdefData(message);
+    },
+    onNfcTagDiscovered: (serial, type, message, data) => {
+      console.log('NFC tag discovered:', { serial, type, message, data });
+      setLastTag(serial);
+    },
+    onNfcTagRemoved: (serial) => {
+      console.log('NFC tag removed:', serial);
+      if (lastTag === serial) {
+        setLastTag(null);
+        setNdefData(null);
+      }
+    },
+  });
+
+  return (
+    <div>
+      <h3>NFC Reader</h3>
+      
+      <div>
+        <button onClick={start} disabled={isScanning}>
+          Start Scanning
+        </button>
+        <button onClick={stop} disabled={!isScanning}>
+          Stop Scanning
+        </button>
+      </div>
+
+      <p>Status: {isScanning ? 'Scanning...' : 'Idle'}</p>
+
+      {lastTag && (
+        <div className="tag-info">
+          <h4>Tag Information</h4>
+          <p>Serial: <code>{lastTag}</code></p>
+          {ndefData && <p>Data: <code>{ndefData}</code></p>}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### NFC Access Control System
+
+Implement an access control system using NFC tags:
+
+```tsx
+import { useNFC } from 'node-fullykiosk';
+import { useState } from 'react';
+
+interface AccessLog {
+  timestamp: string;
+  serial: string;
+  granted: boolean;
+}
+
+function NFCAccessControl() {
+  const [accessLog, setAccessLog] = useState<AccessLog[]>([]);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  
+  // Simulated authorized tags database
+  const authorizedTags = new Set([
+    '04:A1:B2:C3:D4:E5:F6',
+    '04:11:22:33:44:55:66',
+  ]);
+
+  const { isScanning, start } = useNFC({
+    onNfcTagDiscovered: (serial, type, message, data) => {
+      const granted = authorizedTags.has(serial);
+      
+      setAccessLog(prev => [
+        ...prev,
+        {
+          timestamp: new Date().toISOString(),
+          serial,
+          granted,
+        },
+      ]);
+
+      if (granted) {
+        setCurrentUser(serial);
+        // Unlock door, grant access, etc.
+      }
+    },
+    onNfcTagRemoved: (serial) => {
+      if (currentUser === serial) {
+        setCurrentUser(null);
+      }
+    },
+  });
+
+  return (
+    <div className="access-control">
+      <h2>NFC Access Control</h2>
+      
+      {!isScanning && (
+        <button onClick={start}>Start Access Control</button>
+      )}
+
+      {currentUser ? (
+        <div className="access-granted">
+          <h3>Access Granted</h3>
+          <p>User: {currentUser}</p>
+        </div>
+      ) : (
+        <div className="access-waiting">
+          <p>Scan your NFC tag to gain access</p>
+        </div>
+      )}
+
+      <div className="access-log">
+        <h3>Access Log</h3>
+        {accessLog.slice(-10).reverse().map((entry, i) => (
+          <div key={i} className={entry.granted ? 'granted' : 'denied'}>
+            <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
+            <span>{entry.serial}</span>
+            <span>{entry.granted ? '✓ Granted' : '✗ Denied'}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## QR Code Scanner
+
+The `useQRScanner` hook provides QR code scanning with extensive configuration options.
+
+### Basic QR Scanner
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function QRScanner() {
+  const [scannedCodes, setScannedCodes] = useState<string[]>([]);
+
+  const { scannedQR, startScanning } = useQRScanner({
+    onScan: (code) => {
+      console.log('QR Code scanned:', code);
+      setScannedCodes(prev => [...prev, code]);
+    },
+    onCancel: () => {
+      console.log('Scan cancelled');
+    },
+  });
+
+  const handleScan = () => {
+    startScanning(
+      'Scan QR Code',  // Prompt message
+      '',              // Result URL (empty for callback)
+      -1,              // Camera ID (-1 for default)
+      -1,              // Timeout (-1 for no timeout)
+      true,            // Beep on success
+      true,            // Show cancel button
+      false            // Use flashlight
+    );
+  };
+
+  return (
+    <div>
+      <h3>QR Code Scanner</h3>
+      
+      <button onClick={handleScan}>Scan QR Code</button>
+
+      {scannedQR && (
+        <div className="scan-result">
+          <h4>Last Scanned:</h4>
+          <code>{scannedQR}</code>
+        </div>
+      )}
+
+      {scannedCodes.length > 0 && (
+        <div className="scan-history">
+          <h4>Scan History</h4>
+          <ul>
+            {scannedCodes.slice(-5).reverse().map((code, i) => (
+              <li key={i}><code>{code}</code></li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Advanced QR Scanner with Options
+
+Implement a scanner with customizable options:
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function AdvancedQRScanner() {
+  const [options, setOptions] = useState({
+    timeout: 30000,
+    beepEnabled: true,
+    showCancelButton: true,
+    useFlashlight: false,
+  });
+  const [scannedData, setScannedData] = useState<string | null>(null);
+
+  const { startScanning } = useQRScanner({
+    onScan: (code) => {
+      setScannedData(code);
+      // Process scanned data
+      if (code.startsWith('http')) {
+        // Handle URL
+        window.location.href = code;
+      } else {
+        // Handle other data types
+        console.log('Data:', code);
+      }
+    },
+    onCancel: () => {
+      console.log('User cancelled scan');
+    },
+  });
+
+  const handleScan = () => {
+    startScanning(
+      'Point camera at QR code',
+      '',
+      -1,
+      options.timeout,
+      options.beepEnabled,
+      options.showCancelButton,
+      options.useFlashlight
+    );
+  };
+
+  return (
+    <div>
+      <h3>Advanced QR Scanner</h3>
+      
+      <div className="scanner-options">
+        <label>
+          <input
+            type="checkbox"
+            checked={options.beepEnabled}
+            onChange={(e) => setOptions({ ...options, beepEnabled: e.target.checked })}
+          />
+          Beep on success
+        </label>
+        
+        <label>
+          <input
+            type="checkbox"
+            checked={options.showCancelButton}
+            onChange={(e) => setOptions({ ...options, showCancelButton: e.target.checked })}
+          />
+          Show cancel button
+        </label>
+        
+        <label>
+          <input
+            type="checkbox"
+            checked={options.useFlashlight}
+            onChange={(e) => setOptions({ ...options, useFlashlight: e.target.checked })}
+          />
+          Use flashlight
+        </label>
+        
+        <label>
+          Timeout (ms):
+          <input
+            type="number"
+            value={options.timeout}
+            onChange={(e) => setOptions({ ...options, timeout: parseInt(e.target.value) })}
+          />
+        </label>
+      </div>
+
+      <button onClick={handleScan}>Start Scan</button>
+
+      {scannedData && (
+        <div className="result">
+          <h4>Scanned Data:</h4>
+          <pre>{scannedData}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Inventory Scanner Application
+
+Build a complete inventory management scanner:
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+interface InventoryItem {
+  code: string;
+  scannedAt: string;
+  verified: boolean;
+}
+
+function InventoryScanner() {
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [scanning, setScanning] = useState(false);
+
+  const { startScanning } = useQRScanner({
+    onScan: async (code) => {
+      // Verify item in database
+      const verified = await verifyInventoryItem(code);
+      
+      setItems(prev => [
+        ...prev,
+        {
+          code,
+          scannedAt: new Date().toISOString(),
+          verified,
+        },
+      ]);
+
+      // Continue scanning
+      if (scanning) {
+        setTimeout(() => handleScan(), 1000);
+      }
+    },
+    onCancel: () => {
+      setScanning(false);
+    },
+  });
+
+  const verifyInventoryItem = async (code: string): Promise<boolean> => {
+    // Simulate API call
+    return new Promise(resolve => {
+      setTimeout(() => resolve(Math.random() > 0.2), 500);
+    });
+  };
+
+  const handleScan = () => {
+    startScanning(
+      'Scan inventory item',
+      '',
+      -1,
+      30000,
+      true,
+      true,
+      false
+    );
+  };
+
+  const startBatchScan = () => {
+    setScanning(true);
+    handleScan();
+  };
+
+  const stopBatchScan = () => {
+    setScanning(false);
+  };
+
+  const exportData = () => {
+    const csv = [
+      'Code,Scanned At,Verified',
+      ...items.map(item => 
+        `${item.code},${item.scannedAt},${item.verified}`
+      ),
+    ].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventory-${new Date().toISOString()}.csv`;
+    a.click();
+  };
+
+  return (
+    <div className="inventory-scanner">
+      <h2>Inventory Scanner</h2>
+      
+      <div className="controls">
+        {!scanning ? (
+          <button onClick={startBatchScan}>Start Batch Scan</button>
+        ) : (
+          <button onClick={stopBatchScan}>Stop Scanning</button>
+        )}
+        <button onClick={exportData} disabled={items.length === 0}>
+          Export Data
+        </button>
+      </div>
+
+      <div className="stats">
+        <div>Total Scanned: {items.length}</div>
+        <div>Verified: {items.filter(i => i.verified).length}</div>
+        <div>Failed: {items.filter(i => !i.verified).length}</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.slice(-10).reverse().map((item, i) => (
+            <tr key={i} className={item.verified ? 'verified' : 'failed'}>
+              <td><code>{item.code}</code></td>
+              <td>{new Date(item.scannedAt).toLocaleTimeString()}</td>
+              <td>{item.verified ? '✓' : '✗'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Handle hardware availability">
+    Always check if hooks return `undefined` and provide appropriate fallbacks
+  </Step>
+  <Step title="Clean up event listeners">
+    Hooks automatically clean up on unmount, but be mindful of component lifecycle
+  </Step>
+  <Step title="Provide user feedback">
+    Hardware operations can fail - always show status and error messages
+  </Step>
+  <Step title="Test on actual hardware">
+    Hardware features cannot be fully emulated - test on real devices
+  </Step>
+</Steps>
+
+<Note>
+  NFC and QR scanning require appropriate permissions in Fully Kiosk Browser. Ensure your device has the necessary hardware and permissions configured.
+</Note>
+
+<Warning>
+  Battery monitoring, Bluetooth control, and hardware scanning can impact device performance. Use polling intervals wisely and stop scanning when not needed.
+</Warning>
+
+## Related Hooks
+
+- [Device Information](/guides/device-info) - Device identifiers and information
+- [Screen Control](/guides/screen-control) - Display management
+- [Network Connectivity](/guides/network-connectivity) - Network status monitoring

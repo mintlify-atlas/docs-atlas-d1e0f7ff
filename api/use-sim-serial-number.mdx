@@ -1,0 +1,56 @@
+---
+title: useSimSerialNumber
+description: Get the SIM card serial number
+---
+
+## Hook Signature
+
+```typescript
+const simSerialNumber = useSimSerialNumber();
+```
+
+## Return Value
+
+<ResponseField name="simSerialNumber" type="string | undefined">
+  The SIM card serial number (ICCID). Returns `undefined` when running outside the Fully Kiosk Browser environment or if no SIM card is present.
+</ResponseField>
+
+## Description
+
+Retrieves the serial number of the SIM card installed in the device, also known as the ICCID (Integrated Circuit Card Identifier). This is unique to each SIM card and can be used to identify the specific SIM rather than the device itself.
+
+## Example
+
+```typescript
+import { useSimSerialNumber } from 'node-fullykiosk';
+
+function NetworkInfo() {
+  const simSerialNumber = useSimSerialNumber();
+
+  return (
+    <div>
+      <h2>Mobile Network Information</h2>
+      {simSerialNumber ? (
+        <div>
+          <label>SIM Serial Number (ICCID):</label>
+          <code>{simSerialNumber}</code>
+          <p className="status">SIM card detected</p>
+        </div>
+      ) : (
+        <p className="warning">
+          No SIM card detected or running outside Fully Kiosk Browser
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Returns `undefined` when not running in the Fully Kiosk Browser environment
+- Only available on devices with a SIM card slot and an inserted SIM card
+- WiFi-only tablets without SIM capabilities will return `undefined`
+- The value changes if the SIM card is replaced
+- May require specific Android permissions to access
+- Useful for tracking which SIM cards are deployed with which devices

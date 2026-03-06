@@ -1,0 +1,62 @@
+---
+title: useWifiSignalLevel
+description: Get the WiFi signal strength
+---
+
+## Overview
+
+Returns the current WiFi signal level as a number.
+
+```typescript
+const useWifiSignalLevel: () => number | undefined
+```
+
+## Usage
+
+```tsx
+import { useWifiSignalLevel } from 'node-fullykiosk';
+
+function WiFiSignal() {
+  const signalLevel = useWifiSignalLevel();
+
+  const getSignalQuality = (level: number) => {
+    if (level >= -50) return 'Excellent';
+    if (level >= -60) return 'Good';
+    if (level >= -70) return 'Fair';
+    return 'Weak';
+  };
+
+  return (
+    <div>
+      <h2>WiFi Signal</h2>
+      {signalLevel !== undefined ? (
+        <>
+          <p>Signal Level: {signalLevel} dBm</p>
+          <p>Quality: {getSignalQuality(signalLevel)}</p>
+        </>
+      ) : (
+        <p>Signal level not available</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="signalLevel" type="number | undefined">
+  The WiFi signal strength in dBm (decibel-milliwatts). Typical values range from -30 (excellent) to -90 (poor). Returns `undefined` if Fully Kiosk Browser is not available or not connected to WiFi.
+</ResponseField>
+
+## Signal Level Guide
+
+- **-30 to -50 dBm**: Excellent signal
+- **-50 to -60 dBm**: Good signal
+- **-60 to -70 dBm**: Fair signal
+- **-70 to -80 dBm**: Weak signal
+- **-80 to -90 dBm**: Very weak signal
+
+## Related Hooks
+
+- [useWifi](/api/use-wifi) - Manage WiFi connection status
+- [useWifiSSID](/api/use-wifi-ssid) - Get the connected WiFi network name

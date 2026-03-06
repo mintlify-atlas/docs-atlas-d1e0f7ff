@@ -1,0 +1,52 @@
+---
+title: useImei
+description: Get the IMEI number of the device
+---
+
+## Hook Signature
+
+```typescript
+const imei = useImei();
+```
+
+## Return Value
+
+<ResponseField name="imei" type="string | undefined">
+  The International Mobile Equipment Identity (IMEI) number. Returns `undefined` when running outside the Fully Kiosk Browser environment or if the device doesn't have an IMEI.
+</ResponseField>
+
+## Description
+
+Retrieves the IMEI (International Mobile Equipment Identity) number of the device. The IMEI is a unique identifier for cellular-capable devices and is typically found on tablets and phones with mobile network connectivity.
+
+## Example
+
+```typescript
+import { useImei } from 'node-fullykiosk';
+
+function DeviceIdentification() {
+  const imei = useImei();
+
+  return (
+    <div>
+      <h2>Device Identifiers</h2>
+      {imei ? (
+        <div>
+          <label>IMEI:</label>
+          <code>{imei}</code>
+        </div>
+      ) : (
+        <p>IMEI not available (WiFi-only device or not in Fully Kiosk)</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Returns `undefined` when not running in the Fully Kiosk Browser environment
+- Only available on devices with cellular capabilities (phones and cellular tablets)
+- WiFi-only tablets will not have an IMEI number
+- May require specific Android permissions to access
+- Useful for device inventory management in enterprise deployments

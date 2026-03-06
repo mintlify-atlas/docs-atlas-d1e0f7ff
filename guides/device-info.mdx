@@ -1,0 +1,309 @@
+---
+title: Device Information
+description: Access and manage device identifiers and hardware information
+icon: mobile
+---
+
+The node-fullykiosk library provides comprehensive hooks for accessing device-specific information such as Android ID, IMEI, serial numbers, and device identifiers. These hooks are essential for device registration, inventory management, and hardware tracking.
+
+## Available Hooks
+
+<CardGroup cols={2}>
+  <Card title="useAndroidId" icon="fingerprint">
+    Get the unique Android ID for the device
+  </Card>
+  <Card title="useDeviceId" icon="id-card">
+    Retrieve the device ID
+  </Card>
+  <Card title="useDeviceName" icon="tag">
+    Get the device name
+  </Card>
+  <Card title="useImei" icon="barcode">
+    Access the IMEI number
+  </Card>
+  <Card title="useSerialNumber" icon="hashtag">
+    Get the device serial number
+  </Card>
+  <Card title="useSimSerialNumber" icon="sim-card">
+    Retrieve the SIM card serial number
+  </Card>
+</CardGroup>
+
+## Basic Usage
+
+### Getting Device Identifiers
+
+All device information hooks follow a simple pattern and return `undefined` if Fully Kiosk Browser is not available:
+
+```tsx
+import { useAndroidId, useDeviceId, useDeviceName } from 'node-fullykiosk';
+
+function DeviceInfo() {
+  const androidId = useAndroidId();
+  const deviceId = useDeviceId();
+  const deviceName = useDeviceName();
+
+  return (
+    <div>
+      <h2>Device Information</h2>
+      <p>Android ID: {androidId ?? 'Not available'}</p>
+      <p>Device ID: {deviceId ?? 'Not available'}</p>
+      <p>Device Name: {deviceName ?? 'Not available'}</p>
+    </div>
+  );
+}
+```
+
+### Hardware Identifiers
+
+Access hardware-specific identifiers like IMEI and serial numbers:
+
+```tsx
+import { useImei, useSerialNumber, useSimSerialNumber } from 'node-fullykiosk';
+
+function HardwareInfo() {
+  const imei = useImei();
+  const serialNumber = useSerialNumber();
+  const simSerial = useSimSerialNumber();
+
+  return (
+    <div>
+      <h3>Hardware Identifiers</h3>
+      <dl>
+        <dt>IMEI:</dt>
+        <dd>{imei ?? 'N/A'}</dd>
+        
+        <dt>Serial Number:</dt>
+        <dd>{serialNumber ?? 'N/A'}</dd>
+        
+        <dt>SIM Serial:</dt>
+        <dd>{simSerial ?? 'N/A'}</dd>
+      </dl>
+    </div>
+  );
+}
+```
+
+## Real-World Use Cases
+
+### Device Registration System
+
+Build a complete device registration system that captures all device identifiers:
+
+<Steps>
+  <Step title="Collect device information">
+    Use multiple hooks to gather comprehensive device data
+  </Step>
+  <Step title="Validate identifiers">
+    Check that required identifiers are available
+  </Step>
+  <Step title="Register with backend">
+    Send device information to your registration API
+  </Step>
+</Steps>
+
+```tsx
+import { 
+  useAndroidId, 
+  useDeviceId, 
+  useDeviceName,
+  useImei,
+  useSerialNumber 
+} from 'node-fullykiosk';
+import { useState } from 'react';
+
+function DeviceRegistration() {
+  const androidId = useAndroidId();
+  const deviceId = useDeviceId();
+  const deviceName = useDeviceName();
+  const imei = useImei();
+  const serialNumber = useSerialNumber();
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const registerDevice = async () => {
+    // Validate that we have the required identifiers
+    if (!androidId || !deviceId) {
+      setError('Missing required device identifiers');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.example.com/devices/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          androidId,
+          deviceId,
+          deviceName,
+          imei,
+          serialNumber,
+          registeredAt: new Date().toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        setIsRegistered(true);
+        setError(null);
+      } else {
+        throw new Error('Registration failed');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  };
+
+  return (
+    <div>
+      <h2>Device Registration</h2>
+      
+      {!isRegistered ? (
+        <>
+          <div className="device-info">
+            <p>Android ID: {androidId ?? 'Not available'}</p>
+            <p>Device ID: {deviceId ?? 'Not available'}</p>
+            <p>Name: {deviceName ?? 'Unnamed'}</p>
+            <p>IMEI: {imei ?? 'N/A'}</p>
+            <p>Serial: {serialNumber ?? 'N/A'}</p>
+          </div>
+          
+          <button 
+            onClick={registerDevice}
+            disabled={!androidId || !deviceId}
+          >
+            Register Device
+          </button>
+          
+          {error && <p className="error">{error}</p>}
+        </>
+      ) : (
+        <p className="success">Device registered successfully!</p>
+      )}
+    </div>
+  );
+}
+```
+
+### Inventory Management Dashboard
+
+Create a comprehensive dashboard for tracking multiple devices:
+
+```tsx
+import { 
+  useAndroidId, 
+  useDeviceId, 
+  useDeviceName,
+  useSerialNumber 
+} from 'node-fullykiosk';
+import { useEffect, useState } from 'react';
+
+interface DeviceRecord {
+  androidId: string;
+  deviceId: string;
+  deviceName: string;
+  serialNumber: string;
+  lastSeen: string;
+  location: string;
+}
+
+function InventoryDashboard() {
+  const androidId = useAndroidId();
+  const deviceId = useDeviceId();
+  const deviceName = useDeviceName();
+  const serialNumber = useSerialNumber();
+  const [deviceRecord, setDeviceRecord] = useState<DeviceRecord | null>(null);
+
+  useEffect(() => {
+    // Report device status every 5 minutes
+    const reportStatus = async () => {
+      if (!androidId || !deviceId) return;
+
+      const record: DeviceRecord = {
+        androidId,
+        deviceId,
+        deviceName: deviceName ?? 'Unknown',
+        serialNumber: serialNumber ?? 'Unknown',
+        lastSeen: new Date().toISOString(),
+        location: window.location.pathname,
+      };
+
+      try {
+        await fetch('https://api.example.com/devices/heartbeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record),
+        });
+        setDeviceRecord(record);
+      } catch (error) {
+        console.error('Failed to report device status:', error);
+      }
+    };
+
+    // Initial report
+    reportStatus();
+
+    // Set up periodic reporting
+    const interval = setInterval(reportStatus, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [androidId, deviceId, deviceName, serialNumber]);
+
+  return (
+    <div>
+      <h2>Device Status</h2>
+      {deviceRecord ? (
+        <table>
+          <tbody>
+            <tr>
+              <th>Device Name</th>
+              <td>{deviceRecord.deviceName}</td>
+            </tr>
+            <tr>
+              <th>Android ID</th>
+              <td><code>{deviceRecord.androidId}</code></td>
+            </tr>
+            <tr>
+              <th>Device ID</th>
+              <td><code>{deviceRecord.deviceId}</code></td>
+            </tr>
+            <tr>
+              <th>Serial Number</th>
+              <td><code>{deviceRecord.serialNumber}</code></td>
+            </tr>
+            <tr>
+              <th>Last Seen</th>
+              <td>{new Date(deviceRecord.lastSeen).toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
+      ) : (
+        <p>Loading device information...</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Important Notes
+
+<Note>
+  All device information hooks return `undefined` when Fully Kiosk Browser is not available. Always check for `undefined` values before using them.
+</Note>
+
+<Warning>
+  Some identifiers like IMEI may require additional permissions on the device. Ensure your Fully Kiosk Browser has the necessary permissions configured.
+</Warning>
+
+## Best Practices
+
+1. **Handle undefined values**: Always provide fallback values or UI when device information is not available
+2. **Privacy considerations**: Be mindful of privacy regulations when collecting and storing device identifiers
+3. **Secure transmission**: Always use HTTPS when sending device information to backend services
+4. **Cache wisely**: Device identifiers typically don't change, so consider caching them locally
+5. **Permission checks**: Verify that your app has the necessary permissions before attempting to access sensitive identifiers
+
+## Related Hooks
+
+- [Screen Control](/guides/screen-control) - Control display settings
+- [Hardware Integration](/guides/hardware-integration) - Access battery, Bluetooth, and NFC
+- [Network Connectivity](/guides/network-connectivity) - Monitor network status

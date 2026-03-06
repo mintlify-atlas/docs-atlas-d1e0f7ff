@@ -1,0 +1,92 @@
+---
+title: 'useScreenBrightness'
+description: 'Control and monitor the device screen brightness'
+icon: 'sun'
+---
+
+## Usage
+
+```typescript
+import { useScreenBrightness } from 'node-fullykiosk';
+
+function App() {
+  const { brightness, setBrightness } = useScreenBrightness();
+
+  return (
+    <div>
+      <p>Current brightness: {brightness}</p>
+      <button onClick={() => setBrightness(128)}>
+        Set to 50%
+      </button>
+      <button onClick={() => setBrightness(255)}>
+        Set to 100%
+      </button>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+Returns an object with the following properties:
+
+<ResponseField name="brightness" type="number | undefined">
+  The current screen brightness value between 0 and 255. Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+<ResponseField name="setBrightness" type="(brightness: number) => void">
+  Function to set the screen brightness. Accepts a number between 0 (darkest) and 255 (brightest).
+</ResponseField>
+
+## Examples
+
+### Brightness Slider
+
+```typescript
+import { useScreenBrightness } from 'node-fullykiosk';
+
+function BrightnessControl() {
+  const { brightness, setBrightness } = useScreenBrightness();
+
+  return (
+    <div>
+      <label>Brightness: {brightness}</label>
+      <input
+        type="range"
+        min="0"
+        max="255"
+        value={brightness ?? 128}
+        onChange={(e) => setBrightness(Number(e.target.value))}
+      />
+    </div>
+  );
+}
+```
+
+### Preset Brightness Levels
+
+```typescript
+import { useScreenBrightness } from 'node-fullykiosk';
+
+function PresetBrightness() {
+  const { brightness, setBrightness } = useScreenBrightness();
+
+  const presets = [
+    { label: 'Low', value: 64 },
+    { label: 'Medium', value: 128 },
+    { label: 'High', value: 192 },
+    { label: 'Max', value: 255 },
+  ];
+
+  return (
+    <div>
+      <p>Current: {brightness}</p>
+      {presets.map(({ label, value }) => (
+        <button key={label} onClick={() => setBrightness(value)}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+```

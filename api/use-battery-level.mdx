@@ -1,0 +1,125 @@
+---
+title: 'useBatteryLevel'
+description: 'Monitor the device battery level in real-time'
+---
+
+React hook that provides real-time battery level monitoring for the device.
+
+## Import
+
+```typescript
+import { useBatteryLevel } from 'node-fullykiosk';
+```
+
+## Usage
+
+```tsx
+import { useBatteryLevel } from 'node-fullykiosk';
+
+function BatteryMonitor() {
+  const { batteryLevel } = useBatteryLevel();
+
+  if (batteryLevel === undefined) {
+    return <div>Fully Kiosk not available</div>;
+  }
+
+  return (
+    <div>
+      <h2>Battery Status</h2>
+      <p>Current level: {batteryLevel}%</p>
+      {batteryLevel < 20 && (
+        <p style={{ color: 'red' }}>Low battery!</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="batteryLevel" type="number | undefined">
+  The current battery level as a percentage (0-100). Returns `undefined` if Fully Kiosk is not available.
+</ResponseField>
+
+## Behavior
+
+- Automatically subscribes to battery level changes via the `onBatteryLevelChanged` event
+- Updates in real-time when the battery level changes
+- Returns `undefined` when Fully Kiosk is not available
+- Automatically cleans up event listeners on unmount
+
+## Example: Battery Status Display
+
+```tsx
+import { useBatteryLevel } from 'node-fullykiosk';
+
+function BatteryIndicator() {
+  const { batteryLevel } = useBatteryLevel();
+
+  if (batteryLevel === undefined) return null;
+
+  const getBatteryColor = () => {
+    if (batteryLevel > 50) return 'green';
+    if (batteryLevel > 20) return 'orange';
+    return 'red';
+  };
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center',
+      gap: '8px'
+    }}>
+      <div style={{
+        width: '100px',
+        height: '20px',
+        border: '2px solid #333',
+        borderRadius: '4px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          width: `${batteryLevel}%`,
+          height: '100%',
+          backgroundColor: getBatteryColor(),
+          transition: 'all 0.3s ease'
+        }} />
+      </div>
+      <span>{batteryLevel}%</span>
+    </div>
+  );
+}
+```
+
+## Example: Low Battery Alert
+
+```tsx
+import { useBatteryLevel } from 'node-fullykiosk';
+import { useEffect } from 'react';
+
+function LowBatteryAlert() {
+  const { batteryLevel } = useBatteryLevel();
+
+  useEffect(() => {
+    if (batteryLevel !== undefined && batteryLevel < 15) {
+      // Show critical battery warning
+      console.warn('Critical battery level:', batteryLevel);
+      // Trigger notification or action
+    }
+  }, [batteryLevel]);
+
+  return (
+    <div>
+      {batteryLevel !== undefined && batteryLevel < 15 && (
+        <div style={{
+          padding: '16px',
+          backgroundColor: '#ff4444',
+          color: 'white',
+          borderRadius: '8px'
+        }}>
+          ⚠️ Critical battery level: {batteryLevel}%
+        </div>
+      )}
+    </div>
+  );
+}
+```

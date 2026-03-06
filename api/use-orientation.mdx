@@ -1,0 +1,114 @@
+---
+title: 'useOrientation'
+description: 'Get the current screen orientation in degrees'
+icon: 'mobile-screen'
+---
+
+## Usage
+
+```typescript
+import { useOrientation } from 'node-fullykiosk';
+
+function App() {
+  const orientation = useOrientation();
+
+  return (
+    <div>
+      <p>Current orientation: {orientation}°</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+Returns the screen orientation:
+
+<ResponseField name="orientation" type="number | undefined">
+  The current screen orientation in degrees. Possible values:
+  - `0` - Portrait (upright)
+  - `90` - Landscape (rotated 90° clockwise)
+  - `180` - Portrait (upside down)
+  - `270` - Landscape (rotated 90° counter-clockwise)
+  
+  Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+## Examples
+
+### Display Orientation Label
+
+```typescript
+import { useOrientation } from 'node-fullykiosk';
+
+function OrientationDisplay() {
+  const orientation = useOrientation();
+
+  const getOrientationLabel = (degrees: number | undefined) => {
+    switch (degrees) {
+      case 0:
+        return 'Portrait';
+      case 90:
+        return 'Landscape (Right)';
+      case 180:
+        return 'Portrait (Upside Down)';
+      case 270:
+        return 'Landscape (Left)';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  return (
+    <div>
+      <p>Orientation: {getOrientationLabel(orientation)}</p>
+      <p>Degrees: {orientation}°</p>
+    </div>
+  );
+}
+```
+
+### Conditional Rendering Based on Orientation
+
+```typescript
+import { useOrientation } from 'node-fullykiosk';
+
+function ResponsiveLayout() {
+  const orientation = useOrientation();
+  const isLandscape = orientation === 90 || orientation === 270;
+
+  return (
+    <div className={isLandscape ? 'landscape-layout' : 'portrait-layout'}>
+      {isLandscape ? (
+        <div>Landscape content layout</div>
+      ) : (
+        <div>Portrait content layout</div>
+      )}
+    </div>
+  );
+}
+```
+
+### Orientation Icon
+
+```typescript
+import { useOrientation } from 'node-fullykiosk';
+
+function OrientationIcon() {
+  const orientation = useOrientation();
+
+  const getIcon = (degrees: number | undefined) => {
+    if (degrees === 90 || degrees === 270) return '📱';
+    return '📲';
+  };
+
+  return (
+    <div>
+      <span style={{ fontSize: '48px', transform: `rotate(${orientation ?? 0}deg)` }}>
+        {getIcon(orientation)}
+      </span>
+      <p>{orientation}°</p>
+    </div>
+  );
+}
+```

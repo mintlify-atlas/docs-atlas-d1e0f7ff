@@ -1,0 +1,50 @@
+---
+title: useDeviceId
+description: Get the unique device identifier
+---
+
+## Hook Signature
+
+```typescript
+const deviceId = useDeviceId();
+```
+
+## Return Value
+
+<ResponseField name="deviceId" type="string | undefined">
+  The unique device identifier. Returns `undefined` when running outside the Fully Kiosk Browser environment.
+</ResponseField>
+
+## Description
+
+Retrieves the unique device identifier from the Fully Kiosk Browser. This identifier is specific to the device and can be used for device management and tracking purposes.
+
+## Example
+
+```typescript
+import { useDeviceId } from 'node-fullykiosk';
+
+function DeviceManager() {
+  const deviceId = useDeviceId();
+
+  if (!deviceId) {
+    return <div>Device ID not available</div>;
+  }
+
+  return (
+    <div>
+      <h2>Device Registration</h2>
+      <p>Device ID: {deviceId}</p>
+      <button onClick={() => registerDevice(deviceId)}>
+        Register Device
+      </button>
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Returns `undefined` when not running in the Fully Kiosk Browser environment
+- Useful for device registration and management systems
+- The device ID is persistent and unique to each device

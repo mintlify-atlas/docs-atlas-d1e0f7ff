@@ -1,0 +1,91 @@
+---
+title: "useKeyboard"
+description: "Monitor and control the on-screen keyboard visibility"
+---
+
+## Usage
+
+```tsx
+import { useKeyboard } from 'node-fullykiosk';
+
+function MyComponent() {
+  const { keyboardVisible, showKeyboard, hideKeyboard } = useKeyboard();
+
+  return (
+    <div>
+      <p>Keyboard is {keyboardVisible ? 'visible' : 'hidden'}</p>
+      <button onClick={showKeyboard}>Show Keyboard</button>
+      <button onClick={hideKeyboard}>Hide Keyboard</button>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+Returns an object with the following properties:
+
+<ResponseField name="keyboardVisible" type="boolean | undefined">
+  Current visibility state of the on-screen keyboard. Returns `undefined` if not running in Fully Kiosk Browser.
+</ResponseField>
+
+<ResponseField name="showKeyboard" type="() => void">
+  Function to show the on-screen keyboard programmatically.
+</ResponseField>
+
+<ResponseField name="hideKeyboard" type="() => void">
+  Function to hide the on-screen keyboard programmatically.
+</ResponseField>
+
+## Examples
+
+### Toggle Keyboard
+
+```tsx
+import { useKeyboard } from 'node-fullykiosk';
+
+function KeyboardToggle() {
+  const { keyboardVisible, showKeyboard, hideKeyboard } = useKeyboard();
+
+  const toggleKeyboard = () => {
+    if (keyboardVisible) {
+      hideKeyboard();
+    } else {
+      showKeyboard();
+    }
+  };
+
+  return (
+    <button onClick={toggleKeyboard}>
+      {keyboardVisible ? 'Hide' : 'Show'} Keyboard
+    </button>
+  );
+}
+```
+
+### Conditional Rendering
+
+```tsx
+import { useKeyboard } from 'node-fullykiosk';
+
+function KeyboardStatus() {
+  const { keyboardVisible, hideKeyboard } = useKeyboard();
+
+  if (keyboardVisible) {
+    return (
+      <div className="keyboard-alert">
+        <p>Keyboard is currently visible</p>
+        <button onClick={hideKeyboard}>Dismiss Keyboard</button>
+      </div>
+    );
+  }
+
+  return null;
+}
+```
+
+## Notes
+
+- The hook automatically tracks keyboard visibility changes through Fully Kiosk Browser events
+- When not running in Fully Kiosk Browser, `keyboardVisible` returns `undefined` and the show/hide functions are no-ops
+- The keyboard state updates automatically when the keyboard is shown or hidden through other means (e.g., user interaction with input fields)

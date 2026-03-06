@@ -1,0 +1,140 @@
+---
+title: Installation
+description: Install node-fullykiosk in your React project
+---
+
+## Prerequisites
+
+Before installing `node-fullykiosk`, ensure you have:
+
+- **React 18.0+** installed in your project
+- **Fully Kiosk Browser** installed on your target Android device
+- **Node.js 16+** for package management
+
+<Note>
+  The library uses React Hooks, so you need React 16.8 or higher. However, it's developed with React 18.2.0, so we recommend using React 18+ for the best experience.
+</Note>
+
+## Install the Package
+
+Install `node-fullykiosk` using your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install fullykiosk
+```
+
+```bash yarn
+yarn add fullykiosk
+```
+
+```bash pnpm
+pnpm add fullykiosk
+```
+</CodeGroup>
+
+<Note>
+  The package is published on npm as `fullykiosk`, not `node-fullykiosk`.
+</Note>
+
+## TypeScript Setup
+
+The library is written in TypeScript and includes type definitions out of the box. No additional `@types` packages are needed.
+
+All hooks are fully typed, including:
+
+- Return values with proper type inference
+- Event handler types
+- Enum types for states (e.g., `PlugStates` for charging)
+
+```typescript
+import { useBatteryLevel, useCharging } from 'fullykiosk';
+import type { PlugStates } from 'fullykiosk';
+
+function BatteryStatus() {
+  const { batteryLevel } = useBatteryLevel();
+  const { charging, chargeState } = useCharging();
+  
+  // batteryLevel: number | undefined
+  // charging: boolean | undefined
+  // chargeState: PlugStates | undefined
+}
+```
+
+## Verification
+
+After installation, verify the setup by importing a hook:
+
+<Steps>
+  <Step title="Import a hook">
+    Create a test component that imports one of the hooks:
+    
+    ```tsx
+    import { useDeviceName } from 'fullykiosk';
+    
+    function DeviceInfo() {
+      const deviceName = useDeviceName();
+      return <div>Device: {deviceName ?? 'Not in Fully Kiosk'}</div>;
+    }
+    ```
+  </Step>
+  
+  <Step title="Build your application">
+    Ensure your application builds without errors:
+    
+    ```bash
+    npm run build
+    ```
+  </Step>
+  
+  <Step title="Test in Fully Kiosk Browser">
+    Deploy your application and open it in Fully Kiosk Browser on an Android device. The hooks should return actual device data instead of `undefined`.
+  </Step>
+</Steps>
+
+<Warning>
+  Hooks will return `undefined` when not running in Fully Kiosk Browser. This is by design and allows you to develop and test in a regular browser. Always check for `undefined` values in your components.
+</Warning>
+
+## Development Environment
+
+For local development, the hooks will safely return `undefined` when the Fully Kiosk API is not available. This allows you to:
+
+- Develop your application in Chrome or other browsers
+- Use React DevTools and other development utilities
+- Test your UI with mock data or fallback states
+
+```tsx
+import { useBatteryLevel } from 'fullykiosk';
+
+function BatteryWidget() {
+  const { batteryLevel } = useBatteryLevel();
+  
+  // Handle undefined for development
+  if (batteryLevel === undefined) {
+    return <div>Battery info not available (not in Fully Kiosk)</div>;
+  }
+  
+  return <div>Battery: {batteryLevel}%</div>;
+}
+```
+
+## What's Included
+
+The package includes:
+
+- All React Hook exports
+- TypeScript type definitions
+- CommonJS build for Node.js compatibility
+
+The library has:
+
+- **Zero runtime dependencies** (only peer dependency on React)
+- **Small bundle size** - optimized for kiosk applications
+- **Tree-shakeable exports** - import only the hooks you need
+
+## Next Steps
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Build your first kiosk application with node-fullykiosk
+</Card>

@@ -1,0 +1,421 @@
+---
+title: 'useQRScanner'
+description: 'Scan QR codes using the device camera'
+---
+
+React hook that provides QR code scanning functionality with customizable callbacks and camera settings.
+
+## Import
+
+```typescript
+import { useQRScanner } from 'node-fullykiosk';
+```
+
+## Usage
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function QRScanner() {
+  const [result, setResult] = useState('');
+  
+  const { scannedQR, startScanning } = useQRScanner({
+    onScan: (code) => {
+      console.log('QR code scanned:', code);
+      setResult(code);
+    },
+    onCancel: () => {
+      console.log('Scan cancelled');
+    }
+  });
+
+  return (
+    <div>
+      <button onClick={() => startScanning('Scan QR Code', '')}>
+        Start Scanning
+      </button>
+      {scannedQR && <p>Last scanned: {scannedQR}</p>}
+      {result && <p>Result: {result}</p>}
+    </div>
+  );
+}
+```
+
+## Parameters
+
+<ParamField path="config" type="object" optional>
+  Configuration object for QR scanning callbacks.
+
+  <Expandable title="config properties">
+    <ResponseField name="onScan" type="(code: string) => void" optional>
+      Callback invoked when a QR code is successfully scanned.
+      - `code`: The decoded QR code content
+    </ResponseField>
+
+    <ResponseField name="onCancel" type="() => void" optional>
+      Callback invoked when the user cancels the scanning operation.
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+## Return Value
+
+<ResponseField name="scannedQR" type="string | undefined">
+  The most recently scanned QR code content. Returns `undefined` if no code has been scanned or if Fully Kiosk is not available.
+</ResponseField>
+
+<ResponseField name="startScanning" type="(prompt: string, resultUrl: string, cameraId?: number, timeout?: number, beepEnabled?: boolean, showCancelButton?: boolean, useFlashlight?: boolean) => void">
+  Function to initiate QR code scanning with the specified parameters.
+  
+  <Expandable title="startScanning parameters">
+    <ParamField path="prompt" type="string" required>
+      The message to display to the user during scanning.
+    </ParamField>
+
+    <ParamField path="resultUrl" type="string" required>
+      URL to navigate to after scanning (can be empty string).
+    </ParamField>
+
+    <ParamField path="cameraId" type="number" default="-1">
+      Camera to use for scanning. `-1` uses the default camera.
+    </ParamField>
+
+    <ParamField path="timeout" type="number" default="-1">
+      Timeout in milliseconds. `-1` means no timeout.
+    </ParamField>
+
+    <ParamField path="beepEnabled" type="boolean" default="true">
+      Whether to play a beep sound on successful scan.
+    </ParamField>
+
+    <ParamField path="showCancelButton" type="boolean" default="true">
+      Whether to show a cancel button during scanning.
+    </ParamField>
+
+    <ParamField path="useFlashlight" type="boolean" default="false">
+      Whether to enable the camera flashlight during scanning.
+    </ParamField>
+  </Expandable>
+</ResponseField>
+
+## Behavior
+
+- Returns `undefined` for all values if Fully Kiosk is not available
+- The `onScan` callback is invoked when a QR code is successfully decoded
+- The `onCancel` callback is invoked when the user cancels scanning
+- The `scannedQR` state is automatically updated with the latest scan result
+- Event handlers are registered on mount and cleaned up on unmount
+
+## Example: Basic QR Scanner
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function BasicQRScanner() {
+  const [scanResult, setScanResult] = useState(null);
+  const [scanning, setScanning] = useState(false);
+
+  const { scannedQR, startScanning } = useQRScanner({
+    onScan: (code) => {
+      setScanResult({
+        code,
+        timestamp: new Date().toISOString()
+      });
+      setScanning(false);
+    },
+    onCancel: () => {
+      setScanning(false);
+    }
+  });
+
+  const handleScan = () => {
+    setScanning(true);
+    startScanning(
+      'Point camera at QR code',
+      '',
+      -1,        // Default camera
+      30000,     // 30 second timeout
+      true,      // Beep on success
+      true,      // Show cancel button
+      false      // Don't use flashlight
+    );
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h2>QR Code Scanner</h2>
+      
+      <button
+        onClick={handleScan}
+        disabled={scanning}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: scanning ? '#ccc' : '#2196F3',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: scanning ? 'not-allowed' : 'pointer',
+          fontSize: '16px'
+        }}
+      >
+        {scanning ? 'Scanning...' : 'Scan QR Code'}
+      </button>
+
+      {scanResult && (
+        <div style={{
+          marginTop: '20px',
+          padding: '16px',
+          backgroundColor: '#e8f5e9',
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ marginTop: 0 }}>Scan Result</h3>
+          <p><strong>Code:</strong> {scanResult.code}</p>
+          <p><strong>Time:</strong> {new Date(scanResult.timestamp).toLocaleString()}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Example: URL Scanner with Auto-Navigation
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function URLScanner() {
+  const [scannedUrl, setScannedUrl] = useState('');
+  const [error, setError] = useState('');
+
+  const { startScanning } = useQRScanner({
+    onScan: (code) => {
+      // Validate if it's a URL
+      try {
+        new URL(code);
+        setScannedUrl(code);
+        setError('');
+        // Optionally navigate to the URL
+        window.location.href = code;
+      } catch (e) {
+        setError('Scanned code is not a valid URL');
+      }
+    },
+    onCancel: () => {
+      setError('Scan cancelled by user');
+    }
+  });
+
+  return (
+    <div>
+      <h2>URL QR Scanner</h2>
+      <button onClick={() => startScanning('Scan URL QR Code', '')}>
+        Scan URL
+      </button>
+      
+      {scannedUrl && (
+        <div style={{ marginTop: '16px', color: 'green' }}>
+          <p>Navigating to: {scannedUrl}</p>
+        </div>
+      )}
+      
+      {error && (
+        <div style={{ marginTop: '16px', color: 'red' }}>
+          <p>{error}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Example: Advanced Scanner with Flashlight
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function AdvancedScanner() {
+  const [useFlash, setUseFlash] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  const { scannedQR, startScanning } = useQRScanner({
+    onScan: (code) => {
+      setHistory(prev => [
+        {
+          code,
+          timestamp: Date.now(),
+          flash: useFlash
+        },
+        ...prev
+      ].slice(0, 20)); // Keep last 20 scans
+    },
+    onCancel: () => {
+      console.log('User cancelled scan');
+    }
+  });
+
+  const handleScan = () => {
+    startScanning(
+      'Scan QR Code',
+      '',
+      -1,        // Default camera
+      -1,        // No timeout
+      true,      // Beep enabled
+      true,      // Show cancel button
+      useFlash   // Use flashlight based on toggle
+    );
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h2>Advanced QR Scanner</h2>
+      
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            checked={useFlash}
+            onChange={(e) => setUseFlash(e.target.checked)}
+          />
+          Enable flashlight
+        </label>
+      </div>
+
+      <button
+        onClick={handleScan}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#2196F3',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
+        }}
+      >
+        Start Scanning
+      </button>
+
+      {scannedQR && (
+        <div style={{
+          marginTop: '20px',
+          padding: '12px',
+          backgroundColor: '#fff3e0',
+          borderRadius: '6px'
+        }}>
+          <strong>Last scan:</strong> {scannedQR}
+        </div>
+      )}
+
+      <div style={{ marginTop: '30px' }}>
+        <h3>Scan History</h3>
+        {history.length === 0 ? (
+          <p style={{ color: '#666' }}>No scans yet</p>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {history.map((item, index) => (
+              <li key={index} style={{
+                padding: '12px',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '6px',
+                marginBottom: '8px'
+              }}>
+                <div style={{ wordBreak: 'break-all' }}>
+                  {item.code}
+                </div>
+                <small style={{ color: '#666' }}>
+                  {new Date(item.timestamp).toLocaleString()}
+                  {item.flash && ' • Flashlight used'}
+                </small>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+## Example: Product Scanner
+
+```tsx
+import { useQRScanner } from 'node-fullykiosk';
+import { useState } from 'react';
+
+function ProductScanner() {
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const { startScanning } = useQRScanner({
+    onScan: async (code) => {
+      setLoading(true);
+      try {
+        // Fetch product info from your API
+        const response = await fetch(`/api/products/${code}`);
+        const data = await response.json();
+        setProduct(data);
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+        setProduct({ error: 'Product not found' });
+      } finally {
+        setLoading(false);
+      }
+    },
+    onCancel: () => {
+      setLoading(false);
+    }
+  });
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h2>Product Scanner</h2>
+      
+      <button
+        onClick={() => startScanning('Scan product QR code', '', -1, -1, true, true, false)}
+        disabled={loading}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: loading ? '#ccc' : '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: loading ? 'not-allowed' : 'pointer'
+        }}
+      >
+        {loading ? 'Loading...' : 'Scan Product'}
+      </button>
+
+      {product && (
+        <div style={{
+          marginTop: '20px',
+          padding: '20px',
+          backgroundColor: product.error ? '#ffebee' : '#e8f5e9',
+          borderRadius: '8px'
+        }}>
+          {product.error ? (
+            <p style={{ color: '#c62828' }}>{product.error}</p>
+          ) : (
+            <div>
+              <h3>{product.name}</h3>
+              <p><strong>SKU:</strong> {product.sku}</p>
+              <p><strong>Price:</strong> ${product.price}</p>
+              <p>{product.description}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Requires camera permissions on the device
+- Returns `undefined` if Fully Kiosk is not available
+- The `resultUrl` parameter can be an empty string if you don't want to navigate
+- Timeout of `-1` means the scanner will wait indefinitely
+- Camera ID of `-1` uses the default/back camera

@@ -1,0 +1,41 @@
+---
+title: useWifiSSID
+description: Get the connected WiFi network name
+---
+
+## Overview
+
+Returns the SSID (network name) of the currently connected WiFi network.
+
+```typescript
+const useWifiSSID: () => string | undefined
+```
+
+## Usage
+
+```tsx
+import { useWifiSSID } from 'node-fullykiosk';
+
+function WiFiInfo() {
+  const ssid = useWifiSSID();
+
+  return (
+    <div>
+      <h2>Connected Network</h2>
+      <p>{ssid || 'Not connected'}</p>
+    </div>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="ssid" type="string | undefined">
+  The SSID (name) of the connected WiFi network (e.g., "MyHomeNetwork"), or `undefined` if Fully Kiosk Browser is not available or not connected to WiFi.
+</ResponseField>
+
+## Related Hooks
+
+- [useWifi](/api/use-wifi) - Manage WiFi connection status
+- [useWifiSignalLevel](/api/use-wifi-signal-level) - Get the WiFi signal strength
+- [useIpv4Address](/api/use-ipv4-address) - Get the IPv4 address
